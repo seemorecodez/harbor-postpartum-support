@@ -1,0 +1,21 @@
+* text=auto
+
+*.dart text eol=lf
+*.gradle text eol=lf
+*.html text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.kts text eol=lf
+*.md text eol=lf
+*.plist text eol=lf
+*.swift text eol=lf
+*.xml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+*.ico binary
+*.jpg binary
+*.png binary
+*.ttf binary
+*.wasm binary
+*.woff2 binary

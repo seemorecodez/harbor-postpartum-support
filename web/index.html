@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Harbor is private, women-centered postpartum support. No account, analytics, ads, or personal-content transmission.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; connect-src 'self'; img-src 'self' data: blob:; media-src 'none'; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; manifest-src 'self'">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Harbor">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Harbor - private postpartum support</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    @font-face {
+      font-family: "HarborSans";
+      src: url("assets/assets/fonts/HarborSans-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "HarborSans";
+      src: url("assets/assets/fonts/HarborSans-Medium.ttf") format("truetype");
+      font-weight: 700;
+      font-display: swap;
+    }
+    html, body {
+      background: #fffbf7;
+      margin: 0;
+      min-height: 100%;
+    }
+    #harbor-startup {
+      align-items: center;
+      background: #fffbf7;
+      color: #302b35;
+      display: flex;
+      font-family: "HarborSans", system-ui, sans-serif;
+      inset: 0;
+      justify-content: center;
+      position: fixed;
+      transition: opacity 160ms ease;
+      z-index: 2147483647;
+    }
+    #harbor-startup.harbor-startup--ready {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .harbor-startup__content {
+      box-sizing: border-box;
+      padding: 28px;
+      text-align: center;
+      width: min(100%, 420px);
+    }
+    .harbor-startup__mark {
+      align-items: center;
+      background: #704a69;
+      border-radius: 50%;
+      display: inline-flex;
+      height: 54px;
+      justify-content: center;
+      margin-bottom: 18px;
+      width: 54px;
+    }
+    .harbor-startup__mark svg {
+      height: 27px;
+      width: 27px;
+    }
+    .harbor-startup__title {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0 0 10px;
+    }
+    .harbor-startup__status {
+      font-size: 16px;
+      line-height: 1.45;
+      margin: 0;
+    }
+    .harbor-startup__bar {
+      background: #f7e9e5;
+      border-radius: 999px;
+      height: 4px;
+      margin: 24px auto 0;
+      overflow: hidden;
+      width: 180px;
+    }
+    .harbor-startup__bar::after {
+      animation: harbor-loading 1.2s ease-in-out infinite;
+      background: #704a69;
+      border-radius: inherit;
+      content: "";
+      display: block;
+      height: 100%;
+      width: 45%;
+    }
+    .harbor-startup__retry {
+      background: #704a69;
+      border: 0;
+      border-radius: 14px;
+      color: #fff;
+      cursor: pointer;
+      display: none;
+      font: 700 16px "HarborSans", system-ui, sans-serif;
+      margin: 24px auto 0;
+      min-height: 52px;
+      padding: 0 24px;
+    }
+    #harbor-startup.harbor-startup--failed .harbor-startup__bar {
+      display: none;
+    }
+    #harbor-startup.harbor-startup--failed .harbor-startup__retry {
+      display: block;
+    }
+    @keyframes harbor-loading {
+      from { transform: translateX(-110%); }
+      to { transform: translateX(235%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #harbor-startup { transition: none; }
+      .harbor-startup__bar::after { animation: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="harbor-startup" role="status" aria-live="polite" aria-atomic="true">
+    <div class="harbor-startup__content">
+      <div class="harbor-startup__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 4C13.4 8.8 8 13.3 8 19a8 8 0 0 0 16 0c0-5.7-5.4-10.2-8-15Z" stroke="white" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M12.1 19.3c.1 2.3 1.6 4 3.9 4.6" stroke="white" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 class="harbor-startup__title">Harbor</h1>
+      <p id="harbor-startup-status" class="harbor-startup__status">Opening your private space…</p>
+      <div class="harbor-startup__bar" aria-hidden="true"></div>
+      <button id="harbor-startup-retry" class="harbor-startup__retry" type="button">Try again</button>
+    </div>
+  </div>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js?v=0.1.0-alpha.16" async></script>
+</body>
+</html>
