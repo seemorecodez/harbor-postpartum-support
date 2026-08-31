@@ -1,7 +1,7 @@
 {{flutter_js}}
 {{flutter_build_config}}
 
-const HARBOR_RELEASE = "0.1.0-alpha.16";
+const HARBOR_RELEASE = "0.1.0-alpha.17";
 
 const startupShell = document.getElementById("harbor-startup");
 const startupStatus = document.getElementById("harbor-startup-status");

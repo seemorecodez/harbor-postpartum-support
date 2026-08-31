@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:harbor_app/app.dart';
 import 'package:harbor_app/core/controller.dart';
 import 'package:harbor_app/core/models.dart';
+import 'package:harbor_app/core/release_info.dart';
 import 'package:harbor_app/core/vault.dart';
 
 import 'support/vault_fixtures.dart';
@@ -190,6 +191,71 @@ void main() {
       expect(clipboardText, isNot(contains('Already discussed')));
       expect(clipboardText, isNot(contains('SECRET JOURNAL')));
       expect(clipboardText, isNot(contains('SECRET CHECK-IN')));
+    },
+  );
+
+  testWidgets(
+    'Privacy opens truthful About and content versions without private data',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final controller = HarborController(
+        HarborVault(records: MemoryValueStore(), keys: MemoryValueStore()),
+      );
+      await controller.initialize();
+      await controller.finishOnboarding('0-6 weeks');
+      await controller.saveJournal(
+        JournalEntry(
+          title: 'PRIVATE ABOUT TEST',
+          body: 'This personal value must never become About metadata.',
+        ),
+      );
+      await tester.pumpWidget(HarborApp(controller: controller));
+
+      await tester.tap(find.text('Privacy'));
+      await tester.pumpAndSettle();
+      final openAbout = find.byKey(const ValueKey('open_about_harbor'));
+      await tester.ensureVisible(openAbout);
+      await tester.tap(openAbout);
+      await tester.pumpAndSettle();
+
+      expect(find.text('About Harbor'), findsOneWidget);
+      expect(find.text(HarborReleaseInfo.versionLabel), findsOneWidget);
+      expect(find.text(HarborReleaseInfo.guideLabel), findsOneWidget);
+      expect(find.text(HarborReleaseInfo.storiesLabel), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Application: ${HarborReleaseInfo.versionLabel}'),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(
+          'Body and baby guide: ${HarborReleaseInfo.guideLabel}',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(
+          'Stories library: ${HarborReleaseInfo.storiesLabel}',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('not clinically approved'), findsOneWidget);
+      expect(
+        find.textContaining('live anonymous board is not active'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('PRIVATE ABOUT TEST'), findsNothing);
+      expect(find.byTooltip('Urgent support'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Urgent support'));
+      await tester.pumpAndSettle();
+      expect(find.text('Urgent support'), findsOneWidget);
+      expect(find.text('Call 911'), findsOneWidget);
+      expect(find.text('Call 988'), findsOneWidget);
+      expect(find.text('Text 988'), findsOneWidget);
     },
   );
 

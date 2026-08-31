@@ -2,6 +2,10 @@ enum GuideAudience { woman, baby }
 
 enum GuideUrgency { learn, contactClinician, emergency }
 
+const guideCatalogVersion = '2026.08.30-source-draft.1';
+const guideReviewStatus =
+    'Clinical and women-led lived-experience approval pending';
+
 final class GuideEntry {
   const GuideEntry({
     required this.id,

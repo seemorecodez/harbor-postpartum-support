@@ -95,6 +95,14 @@
 - **Verification:** A startup contract rejects `cache.addAll` and requires reload/fetch/response validation/cache-put behavior. After the fix, the same migration path rendered all seven alpha.16 destinations, preserved the schema-2 journal through schema 3, persisted encrypted story resonance across restart, and reloaded with the server stopped.
 - **Remaining gate:** Multi-browser update/rollback, partial-response, hostile proxy, cache-corruption, quota-eviction, and public-deployment tests.
 
+### HBR-DEC-016 — Release and content status must be visible in the product
+
+- **Decision:** Harbor exposes the exact application/build, local-data schema, body-and-baby guide catalog, and Stories catalog identities in an accessible About path, together with their current review and release status.
+- **Reason:** A hidden or documentation-only version cannot help a woman, reviewer, or support worker determine which offline content is actually on her device. Showing only a marketing version could also conceal that clinical, lived-experience, security, or five-platform approval is still missing.
+- **Privacy boundary:** The About path reads compile-time public metadata only. It does not inspect, summarize, export, or count personal vault content and contains no remote URL or update check.
+- **Verification:** Alpha.17 metadata-drift tests bind the in-app values to `pubspec.yaml`, bootstrap, service-worker, schema, and governed catalogs. Widget and 200%-text tests cover the Privacy → About route, private-value exclusion, semantics, and urgent support. A corrected compiled Chromium pass exposes every label/value and returns safely to Privacy.
+- **Remaining gate:** Public CI, non-Chromium and native assistive-technology verification, independent wording review, and signed-target release evidence.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework

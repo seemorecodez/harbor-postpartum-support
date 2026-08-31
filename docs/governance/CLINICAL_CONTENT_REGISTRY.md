@@ -2,6 +2,8 @@
 
 **Version:** 0.1 draft
 
+**Catalog version:** `2026.08.30-source-draft.1`
+
 **Updated:** 2026-08-30
 **Release status:** Not approved for clinical release
 

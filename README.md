@@ -2,7 +2,7 @@
 
 [![Verify Harbor](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml/badge.svg)](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml)
 
-Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 16, not a clinically approved release or a claim that all five native applications are finished.
+Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 17, not a clinically approved release or a claim that all five native applications are finished.
 
 ## Implemented production slice
 
@@ -17,19 +17,21 @@ Harbor is a private, women-centered postpartum support application targeting web
 - Versioned encrypted-data migration with verified staging/commit, explicit future/corrupt-data lockout, Retry, and separately confirmed erasure.
 - Responsive phone navigation, scalable brand/dropdown layouts, accessible control labels, and regression coverage for 200% text, contrast, target size, and keyboard activation.
 - Offline editorial story drafts with explicit non-live/provenance labels, local search/topic filters, and encrypted private resonance stored through schema 3.
+- An accessible About/content-version path that exposes the exact app, build, schema, guide, and Stories catalog identities together with their unapproved engineering-alpha status.
 
 There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud synchronization, remote AI calls, or backend content APIs in this source. The anonymous message board is absent pending explicit approval of its network privacy boundary.
 
 ## Verified on this Windows host
 
 - Flutter 3.47.2 / Dart 3.13.2 static analysis: clean.
-- Forty-eight automated tests: all pass, including schema-1/2-to-3 migration, encrypted story resonance, catalog provenance, non-simulated-community rules, forced fresh runtime caching during release updates, legacy migration, interrupted-write recovery, future-version lockout, tamper rejection, missing-key protection, recovery-screen interactions, web privacy contracts, phone/desktop responsiveness, 200% text, labels, contrast, target sizes, and keyboard activation.
+- Fifty-three automated tests: all pass, including schema-1/2-to-3 migration, encrypted story resonance, catalog and release-identity provenance, non-simulated-community rules, forced fresh runtime caching during release updates, legacy migration, interrupted-write recovery, future-version lockout, tamper rejection, missing-key protection, recovery-screen interactions, web privacy contracts, phone/desktop responsiveness, 200% text, labels, contrast, target sizes, and keyboard activation.
 - Release WebAssembly web build: passes.
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
 - A real alpha.15-to-alpha.16 browser upgrade preserved an encrypted schema-2 journal, migrated to schema 3, loaded the seven-destination app on the first corrected update, saved encrypted story resonance, survived restart, and reloaded with the server stopped. The first attempt exposed and led to a fix for stale unversioned runtime reuse during service-worker cache installation.
 - A production-style loopback traffic probe observed a compiled-browser synthetic journal save, reload, and confirmed deletion: save/delete added no requests, only same-origin asset GET/HEAD requests occurred, and the unique journal sentinel appeared in no request path, header, or body. This is narrow local evidence, not a public-host or signed-native privacy certification.
-- Public GitHub clean-checkout verification on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 48 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
+- The compiled alpha.17 Privacy → About path exposes every metadata label/value to browser semantics, retains direct urgent-support access and back navigation, and completed a clean-origin run with only same-origin HTTP 200 asset traffic.
+- Public GitHub clean-checkout verification on Ubuntu 24.04 currently repeats locked dependency resolution, formatting, static analysis, all 48 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions. The 53-test alpha.17 suite remains local until the next public CI run.
 
 These checks do not prove clinical approval, independent security/accessibility review, public deployment, native compilation, signing, installation, store acceptance, or physical-device behavior.
 

@@ -511,8 +511,8 @@ Apple hardware/accounts, clinical reviewers, and participant recruitment are lon
 | Interaction/content prototype | Pass as enabling work | React Native prototype demonstrates key flows and tone |
 | Mobile source compilation | Pass as validation evidence | iOS/Android bundles compile; this is not signed-device release evidence |
 | Automated prototype checks | Pass as enabling evidence | Eight source/configuration checks pass |
-| Public source and CI | **Conditional** | Public `main` has an immutable-action Ubuntu 24.04 clean-checkout gate; Flutter 3.47.2 lockfile resolution, formatting, analysis, 43 tests, release WebAssembly build, clean-tree verification, and short-lived artifact preservation pass; native CI, signing, provenance, and deterministic artifact comparison remain |
-| Web product | **Conditional** | Versioned alpha.16 PWA builds; verified browser paths cover upgrades, encrypted schema migration/restart, locked recovery, visible online/offline startup, fatal-load recovery, desktop/phone responsive layouts, keyboard onboarding/navigation, semantic exposure, encrypted synthetic data, care tools, factual reflections, clinician-question handoff, transparent offline Stories with encrypted private resonance, and erase; full feature/release gates remain |
+| Public source and CI | **Conditional** | Public `main` has an immutable-action Ubuntu 24.04 clean-checkout gate; Flutter 3.47.2 lockfile resolution, formatting, analysis, 48 tests, release WebAssembly build, clean-tree verification, and short-lived artifact preservation pass. The local alpha.17 suite has 53 passing tests; native CI, signing, provenance, deterministic artifact comparison, and public verification of the latest slice remain |
+| Web product | **Conditional** | Versioned alpha.17 PWA builds; verified browser paths cover upgrades, encrypted schema migration/restart, locked recovery, visible online/offline startup, fatal-load recovery, desktop/phone responsive layouts, keyboard onboarding/navigation, semantic exposure, encrypted synthetic data, care tools, factual reflections, clinician-question handoff, transparent offline Stories with encrypted private resonance, truthful About/content versions, urgent-support routing, and erase; full feature/release gates remain |
 | Desktop product | **Fail** | Shared Windows/macOS targets exist but no native release artifact has passed its build/install/runtime path |
 | Production architecture | **Conditional** | Shared Flutter web runtime and Windows encrypted-store library proof pass; Android, Windows UI, and Apple runtime proofs remain |
 | Encrypted personal-content storage | **Conditional** | Production AES-256-GCM shared vault, version-1/2-to-version-3 migration/restart, interrupted-write recovery, future-version lockout, and Windows sqlite3mc proof pass; platform key-custody and forensic reviews remain |
@@ -523,7 +523,7 @@ Apple hardware/accounts, clinical reviewers, and participant recruitment are lon
 | Physical-device release testing | **Fail** | No target device matrix has run |
 | Store/legal readiness | **Fail** | Declarations, policies, counsel, and accounts are incomplete |
 
-The React Native ZIP remains **prototype source**. The alpha.16 Flutter source ZIP is the current shared production-source snapshot, and the Flutter web ZIP is a verified **engineering alpha**. Neither is a “complete app” or release candidate until the roadmap gates above pass; no native release artifact is implied by the presence of native target source.
+The React Native ZIP remains **prototype source**. The committed Flutter tree is now alpha.17; the last integrity-audited downloadable ZIPs remain alpha.16 until alpha.17 is packaged and compared. Both stages are **engineering alpha**, not a “complete app” or release candidate; no native release artifact is implied by the presence of native target source.
 
 ## 8. Definition of complete
 

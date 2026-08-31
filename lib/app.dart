@@ -8,6 +8,7 @@ import 'content/stories.dart';
 import 'core/controller.dart';
 import 'core/models.dart';
 import 'core/reflections.dart';
+import 'core/release_info.dart';
 import 'core/vault.dart';
 import 'theme.dart';
 
@@ -1737,6 +1738,24 @@ final class PrivacyScreen extends StatelessWidget {
       ],
       const SizedBox(height: 24),
       Text(
+        'About this Harbor build',
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        'Inspect the exact app, local-data, guide, and Stories versions on this device, including what has not been independently approved.',
+      ),
+      const SizedBox(height: 14),
+      OutlinedButton.icon(
+        key: const ValueKey('open_about_harbor'),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const AboutHarborScreen()),
+        ),
+        icon: const Icon(Icons.info_outline),
+        label: const Text('About and content versions'),
+      ),
+      const SizedBox(height: 24),
+      Text(
         'Erase Harbor from this ${kIsWeb ? 'browser' : 'device'}',
         style: Theme.of(context).textTheme.titleLarge,
       ),
@@ -1759,6 +1778,138 @@ final class PrivacyScreen extends StatelessWidget {
         label: const Text('Erase all local data'),
       ),
     ],
+  );
+}
+
+final class AboutHarborScreen extends StatelessWidget {
+  const AboutHarborScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('About Harbor'),
+      actions: [
+        IconButton(
+          tooltip: 'Urgent support',
+          color: HarborColors.clay,
+          onPressed: () => showEmergencySupport(context),
+          icon: const Icon(Icons.emergency_outlined),
+        ),
+      ],
+    ),
+    body: SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 48),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _InfoPanel(
+                  icon: Icons.science_outlined,
+                  title: HarborReleaseInfo.releaseStatus,
+                  body: 'This build is still being engineered and tested. It is not clinically approved, independently security-certified, or a completed five-platform release. Harbor does not diagnose, monitor, or replace professional or emergency care.',
+                  tone: HarborColors.blush,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Versions on this device',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 10),
+                _VersionPanel(
+                  rows: [
+                    ('Application', HarborReleaseInfo.versionLabel),
+                    (
+                      'Local data schema',
+                      '${HarborReleaseInfo.dataSchemaVersion}',
+                    ),
+                    ('Body and baby guide', HarborReleaseInfo.guideLabel),
+                    ('Stories library', HarborReleaseInfo.storiesLabel),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const _InfoPanel(
+                  icon: Icons.fact_check_outlined,
+                  title: 'Review status',
+                  body:
+                      'Guide: ${HarborReleaseInfo.guideStatus}. Stories: ${HarborReleaseInfo.storiesStatus}. The current catalogs remain visibly labeled drafts until named reviewers approve them.',
+                ),
+                const SizedBox(height: 12),
+                const _InfoPanel(
+                  icon: Icons.phonelink_lock_outlined,
+                  title: 'Private product boundary',
+                  body: 'This screen reads only public build metadata. Harbor has no account, analytics, advertising, remote AI, cloud sync, or backend for private entries. A live anonymous board is not active.',
+                ),
+                const SizedBox(height: 12),
+                const _InfoPanel(
+                  icon: Icons.balance_outlined,
+                  title: HarborReleaseInfo.license,
+                  body: HarborReleaseInfo.copyright,
+                ),
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: () => showEmergencySupport(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: HarborColors.clay,
+                  ),
+                  icon: const Icon(Icons.emergency_outlined),
+                  label: const Text('Open urgent support options'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+final class _VersionPanel extends StatelessWidget {
+  const _VersionPanel({required this.rows});
+
+  final List<(String, String)> rows;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: HarborColors.mist,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: HarborColors.line),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: rows.indexed.map((entry) {
+        final (index, row) = entry;
+        final (label, value) = row;
+        return Padding(
+          padding: EdgeInsets.only(top: index == 0 ? 0 : 14),
+          child: Semantics(
+            container: true,
+            label: '$label: $value',
+            child: ExcludeSemantics(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: HarborColors.plumDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(value),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    ),
   );
 }
 

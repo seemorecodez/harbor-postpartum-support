@@ -128,6 +128,29 @@ void main() {
     await expectCoreGuidelines(tester);
   });
 
+  testWidgets('About and content versions reflow at phone size and 200% text', (
+    tester,
+  ) async {
+    useViewport(tester, const Size(390, 844), textScale: 2);
+    final controller = await readyController();
+    await tester.pumpWidget(HarborApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Privacy').last);
+    await tester.pumpAndSettle();
+    final openAbout = find.byKey(const ValueKey('open_about_harbor'));
+    await tester.ensureVisible(openAbout);
+    await tester.tap(openAbout);
+    await tester.pumpAndSettle();
+
+    expect(find.text('About Harbor'), findsOneWidget);
+    expect(find.text('Versions on this device'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
+  });
+
   testWidgets('keyboard can reach and activate onboarding controls', (
     tester,
   ) async {
