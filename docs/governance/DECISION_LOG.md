@@ -109,7 +109,7 @@
 - **Reason:** The no-telemetry boundary makes support harder, but exporting logs, exception text, device identifiers, timestamps, record counts, OS versions, or vault-derived values would create a new surveillance and disclosure path.
 - **Failure boundary:** Known vault failures map to fixed codes; every unknown exception becomes `vault_unavailable`. Raw exception text cannot enter either the visible or semantic payload.
 - **Verification:** Alpha.18 has four allowlist/redaction tests, About and locked-recovery widget paths, cancel/copy clipboard assertions, 200%-text accessibility coverage, and a compiled Chromium preview/cancel run that showed the exact five fields while adding zero requests.
-- **Remaining gate:** Public CI, public-host and multi-browser checks, installed-target platform/clipboard forensics, assistive-technology testing, support-process review, and independent privacy/security assessment.
+- **Remaining gate:** Public-host and multi-browser checks, installed-target platform/clipboard forensics, assistive-technology testing, support-process review, and independent privacy/security assessment.
 
 ## Decisions pending evidence
 
