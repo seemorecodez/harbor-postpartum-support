@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harbor_app/app.dart';
 import 'package:harbor_app/core/controller.dart';
+import 'package:harbor_app/core/diagnostics.dart';
 import 'package:harbor_app/core/models.dart';
 import 'package:harbor_app/core/release_info.dart';
 import 'package:harbor_app/core/vault.dart';
@@ -202,6 +203,19 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
+      String? clipboardText;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+            if (call.method == 'Clipboard.setData') {
+              clipboardText = (call.arguments as Map)['text'] as String?;
+            }
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+
       final controller = HarborController(
         HarborVault(records: MemoryValueStore(), keys: MemoryValueStore()),
       );
@@ -250,6 +264,34 @@ void main() {
       expect(find.textContaining('PRIVATE ABOUT TEST'), findsNothing);
       expect(find.byTooltip('Urgent support'), findsOneWidget);
 
+      final expectedDiagnostics = HarborDiagnosticReport.create(
+        platform: currentHarborDiagnosticPlatform(),
+        error: null,
+      ).encode();
+      final previewDiagnostics = find.byKey(
+        const ValueKey('preview_diagnostic_export'),
+      );
+      await tester.ensureVisible(previewDiagnostics);
+      await tester.tap(previewDiagnostics);
+      await tester.pumpAndSettle();
+      expect(find.text('Copy diagnostic details?'), findsOneWidget);
+      expect(find.text(expectedDiagnostics), findsOneWidget);
+      expect(find.textContaining('PRIVATE ABOUT TEST'), findsNothing);
+      expect(find.textContaining('personal value'), findsNothing);
+      expect(clipboardText, isNull);
+
+      await tester.tap(find.text('Keep private'));
+      await tester.pumpAndSettle();
+      expect(clipboardText, isNull);
+
+      await tester.tap(previewDiagnostics);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy diagnostic details'));
+      await tester.pumpAndSettle();
+      expect(clipboardText, expectedDiagnostics);
+      expect(clipboardText, isNot(contains('PRIVATE ABOUT TEST')));
+      expect(clipboardText, isNot(contains('personal value')));
+
       await tester.tap(find.byTooltip('Urgent support'));
       await tester.pumpAndSettle();
       expect(find.text('Urgent support'), findsOneWidget);
@@ -279,6 +321,15 @@ void main() {
       );
       expect(find.text('A space that belongs to you.'), findsNothing);
       expect(records.values[HarborVault.recordKey], originalEnvelope);
+
+      await tester.tap(find.byKey(const ValueKey('vault_problem_diagnostics')));
+      await tester.pumpAndSettle();
+      expect(find.text('Copy diagnostic details?'), findsOneWidget);
+      expect(find.textContaining('unsupported_data_schema'), findsOneWidget);
+      expect(find.textContaining('99'), findsNothing);
+      expect(find.textContaining(originalEnvelope), findsNothing);
+      await tester.tap(find.text('Keep private'));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Try opening my data again'));
       await tester.pumpAndSettle();

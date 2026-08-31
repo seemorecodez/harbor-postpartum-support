@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'content/guide.dart';
 import 'content/stories.dart';
 import 'core/controller.dart';
+import 'core/diagnostics.dart';
 import 'core/models.dart';
 import 'core/reflections.dart';
 import 'core/release_info.dart';
@@ -125,6 +126,15 @@ final class VaultProblemScreen extends StatelessWidget {
                     onPressed: controller.saving ? null : controller.initialize,
                     icon: const Icon(Icons.refresh),
                     label: const Text('Try opening my data again'),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const ValueKey('vault_problem_diagnostics'),
+                    onPressed: controller.saving
+                        ? null
+                        : () => showDiagnosticExport(context, controller),
+                    icon: const Icon(Icons.bug_report_outlined),
+                    label: const Text('Preview diagnostic details'),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
@@ -1749,7 +1759,9 @@ final class PrivacyScreen extends StatelessWidget {
       OutlinedButton.icon(
         key: const ValueKey('open_about_harbor'),
         onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const AboutHarborScreen()),
+          MaterialPageRoute<void>(
+            builder: (_) => AboutHarborScreen(controller: controller),
+          ),
         ),
         icon: const Icon(Icons.info_outline),
         label: const Text('About and content versions'),
@@ -1782,7 +1794,9 @@ final class PrivacyScreen extends StatelessWidget {
 }
 
 final class AboutHarborScreen extends StatelessWidget {
-  const AboutHarborScreen({super.key});
+  const AboutHarborScreen({super.key, required this.controller});
+
+  final HarborController controller;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -1844,6 +1858,19 @@ final class AboutHarborScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 const _InfoPanel(
+                  icon: Icons.bug_report_outlined,
+                  title: 'Diagnostic details stay minimal',
+                  body: 'Harbor can prepare app version, platform, local-data schema, and a bounded error code. It excludes entries, record counts, device identifiers, OS version, timestamps, and usage history. Nothing is sent automatically.',
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: const ValueKey('preview_diagnostic_export'),
+                  onPressed: () => showDiagnosticExport(context, controller),
+                  icon: const Icon(Icons.content_copy_outlined),
+                  label: const Text('Preview diagnostic details'),
+                ),
+                const SizedBox(height: 12),
+                const _InfoPanel(
                   icon: Icons.balance_outlined,
                   title: HarborReleaseInfo.license,
                   body: HarborReleaseInfo.copyright,
@@ -1864,6 +1891,83 @@ final class AboutHarborScreen extends StatelessWidget {
       ),
     ),
   );
+}
+
+Future<void> showDiagnosticExport(
+  BuildContext context,
+  HarborController controller,
+) async {
+  final report = HarborDiagnosticReport.create(
+    platform: currentHarborDiagnosticPlatform(),
+    error: controller.error,
+  );
+  final payload = report.encode();
+  final approved = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => AlertDialog(
+      scrollable: true,
+      title: const Text('Copy diagnostic details?'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Review the complete payload below. It contains only app version, build number, platform, local-data schema, and an error code. Harbor does not attach anything else.',
+          ),
+          const SizedBox(height: 14),
+          Semantics(
+            container: true,
+            label: report.semanticLabel,
+            child: ExcludeSemantics(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: HarborColors.mist,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: HarborColors.line),
+                ),
+                child: SelectableText(payload),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Nothing is sent automatically. If you copy this, other apps or clipboard history may retain it.',
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Keep private'),
+        ),
+        FilledButton.icon(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          icon: const Icon(Icons.content_copy_outlined),
+          label: const Text('Copy diagnostic details'),
+        ),
+      ],
+    ),
+  );
+  if (approved != true || !context.mounted) return;
+  try {
+    await Clipboard.setData(ClipboardData(text: payload));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Diagnostic details copied after your review.'),
+      ),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Harbor could not copy the diagnostic details.'),
+      ),
+    );
+  }
 }
 
 final class _VersionPanel extends StatelessWidget {

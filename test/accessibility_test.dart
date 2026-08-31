@@ -149,6 +149,16 @@ void main() {
     expect(find.text('Versions on this device'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await expectCoreGuidelines(tester);
+
+    final diagnostics = find.byKey(const ValueKey('preview_diagnostic_export'));
+    await tester.ensureVisible(diagnostics);
+    await tester.tap(diagnostics);
+    await tester.pumpAndSettle();
+    expect(find.text('Copy diagnostic details?'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
+    await tester.tap(find.text('Keep private'));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('keyboard can reach and activate onboarding controls', (

@@ -4,7 +4,7 @@
 
 **Updated:** 2026-08-31
 
-**Scope:** Harbor alpha 16 private vault and offline web/PWA boundary. This is an engineering threat model, not an independent security assessment or security guarantee.
+**Scope:** Harbor alpha 18 private vault, bounded diagnostics, and offline web/PWA boundary. This is an engineering threat model, not an independent security assessment or security guarantee.
 
 ## System boundary
 
@@ -31,7 +31,7 @@ The web build crosses the network only to retrieve Harbor's static application f
 | Flutter UI → local vault | Personal content | AES-256-GCM envelope, authenticated data, write/read/decrypt verification | A compromised same-origin runtime or unlocked device can access the live key and plaintext |
 | Encrypted record store ↔ key store | Ciphertext and separate key | Separate adapter keys, missing-key lockout, authenticated decryption | Browser storage is not equivalent to hardware-backed native key custody |
 | Current schema → new schema | Decrypted in-memory model and encrypted staging | Deterministic migrations, double verification, locked recovery | Storage pressure, process-kill, rollback, and multi-platform matrices remain |
-| Harbor → clipboard | User-previewed clinician questions or care request | Explicit confirmation and editable preview | Other apps and clipboard history may retain copied text |
+| Harbor → clipboard | User-previewed clinician questions, care request, or five-field diagnostic payload | Exact preview and explicit confirmation; diagnostics are generated from a five-field allowlist and bounded error taxonomy | Other apps and clipboard history may retain copied text; installed-target clipboard forensics remain |
 | Harbor → phone/SMS handler | Phone number or crisis short code | Explicit button activation; only `tel:` and `sms:` schemes | OS, carrier, and recipient receive metadata/content outside Harbor's control |
 | Harbor → future community | None in current product | No board client, service, account, post, or simulated activity | A real board requires a separate approved threat model and moderation operation |
 
@@ -52,7 +52,7 @@ The web build crosses the network only to retrieve Harbor's static application f
 | TM-002 | Host logs or network observers link a woman to Harbor use | High privacy harm | No personal-content request, referrer policy `no-referrer`, no analytics or third-party runtime host | Static request IP/time metadata remains observable. Minimize host logs, document retention, and verify public hosting configuration |
 | TM-003 | Local attacker copies browser storage or native files | Critical disclosure | Encrypted envelope, plaintext-absence and wrong-key tests, separate storage adapters | Browser key and ciphertext remain within one profile; prove native key custody and perform browser/native forensics |
 | TM-004 | Corruption, future schema, or missing key is treated as an empty vault | Critical data loss | Authenticated decryption, future-version rejection, locked recovery, separate confirmed erase, migration fixtures and real upgrade tests | Add process-kill, disk-full/quota, backup/restore, and rollback matrices |
-| TM-005 | Sensitive content leaks through clipboard or an external handoff | High disclosure | Preview and confirmation before clipboard copy; explicit call/text buttons; no automatic handoff | Test installed targets and clipboard histories; document that Harbor cannot erase copies held by the OS or recipient |
+| TM-005 | Sensitive content leaks through clipboard or an external handoff | High disclosure | Preview and confirmation before clipboard copy; diagnostic output is restricted to version/build/platform/schema/error code and unknown exception text collapses to `vault_unavailable`; explicit call/text buttons; no automatic handoff | Test installed targets and clipboard histories; document that Harbor cannot erase copies held by the OS or recipient |
 | TM-006 | Clearing site data, backup policy, or profile eviction destroys records | High availability loss | Pre-entry browser-loss disclosure and confirmed erasure path | No approved encrypted export/import; add storage-pressure and backup/restore evidence before durability claims |
 | TM-007 | A stale service worker retains corrected clinical or privacy code | Critical integrity harm | Release cache identity, forced reload/fetch/validate/put, real alpha 15→16 defect reproduction and corrected update/offline path | Add rollback, partial/corrupt response, proxy, quota, and multi-browser tests |
 | TM-008 | Another site frames Harbor and tricks a woman into activating controls | High privacy/safety harm | `frame-src 'none'` blocks Harbor-created frames; the local probe served and verified HTTP `frame-ancestors 'none'` plus `X-Frame-Options: DENY` | Browsers ignore `frame-ancestors` in a meta policy. Public-host header verification and a cross-origin clickjacking test remain mandatory |
@@ -67,7 +67,7 @@ The web build crosses the network only to retrieve Harbor's static application f
 | No personal content is sent by Harbor | No backend/network dependency, five web privacy-contract tests, and an instrumented compiled-Chromium save/reload/delete capture with zero personal-content requests | Repeat on supported browsers, public hosting, and signed native builds |
 | Runtime assets do not depend on third-party hosts | Bundled fonts/assets, local HTML attributes, CSP/source contract | Public-host network capture and dependency/SBOM review |
 | Unopenable data fails closed | Vault/controller/widget tests and locked recovery UI | Native interruption and forensic matrices |
-| External sharing is deliberate | Clipboard preview/cancel tests and explicit `tel:`/`sms:` source contract | Physical-device clipboard, call, SMS, accessibility, and cancel-path tests |
+| External sharing is deliberate | Clipboard preview/cancel tests, diagnostic five-field allowlist/error-redaction tests, a compiled-browser zero-request diagnostic preview/cancel, and explicit `tel:`/`sms:` source contract | Physical-device clipboard, call, SMS, accessibility, and cancel-path tests |
 | Web app cannot be embedded by another origin | Local production-style response verified `frame-ancestors 'none'` and `X-Frame-Options: DENY` | Repeat the header check and a cross-origin iframe test on the public host |
 | Release changes remain reviewable | Clean public Git history and immutable-action CI | Protected branch/review policy, provenance, signatures, and incident drills |
 
