@@ -166,6 +166,14 @@
 - **Verification:** First public run `33447199764` compiled Windows, macOS, and no-codesign iOS and exposed a real Android API-37 mismatch plus a Windows verifier defect. Alpha.25 pins the smallest compatible AGP/API pair and adds four source-contract tests. Final run `33449252145` passes all Android, Windows, and Apple jobs, including compiled Android manifest, Windows product/signature, Apple product-name, clean-tree, and artifact checks.
 - **Remaining gate:** Real signed/notarized packaging; clean-device install/launch/upgrade/uninstall; Android cloud-backup and device-transfer attempts; zero-egress, key-custody, deletion, screenshot/recents, accessibility, and physical-device evidence on every target.
 
+### HBR-DEC-025 — GitHub Pages may host the public engineering alpha, not define the production privacy boundary
+
+- **Decision:** Harbor's first public browser deployment uses a separately compiled, finalized GitHub Pages artifact under the repository subpath. Deployment is downstream of the complete clean-checkout gate, limited to pushes on `main`, uses immutable official action commits, and isolates `pages:write`/OIDC to the deploy job. The canonical root-host artifact remains independently built and preserved.
+- **Reason:** A real public origin is required to test first-load, offline, update, header, and ordinary-request behavior. GitHub Pages supplies a reversible static-hosting path without adding Harbor accounts, application telemetry, a backend, cookies, or content APIs.
+- **Privacy boundary:** GitHub and network intermediaries can observe ordinary IP/time/path request metadata. Harbor does not control or inspect the platform's underlying log retention. Pages also cannot be assumed to supply Harbor's desired response headers until the deployed responses and cross-origin framing behavior are measured.
+- **Verification:** Alpha.26's 108 tests, clean analysis, two finalized release builds, and a fresh-origin repository-subpath online/offline probe pass locally. The deployment remains pending until public CI and live-origin tests pass.
+- **Remaining gate:** Enable Pages, pass public build/deploy, inspect live headers and resource origins, execute fresh-profile online/offline/update/privacy and cross-origin iframe tests, document hosting retention limits, establish monitoring/rollback, and decide whether a header-controllable production host is required.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework
