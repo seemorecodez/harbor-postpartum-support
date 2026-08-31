@@ -44,11 +44,12 @@ jobs:
           test -f "$apk"
           apkanalyzer="$(find "$ANDROID_HOME/cmdline-tools" -type f -name apkanalyzer -print | sort | tail -n 1)"
           test -n "$apkanalyzer"
-          "$apkanalyzer" manifest print "$apk" > compiled-android-manifest.xml
-          grep -F 'android:label="Harbor"' compiled-android-manifest.xml
-          grep -F 'android:allowBackup="false"' compiled-android-manifest.xml
-          grep -F 'android:usesCleartextTraffic="false"' compiled-android-manifest.xml
-          if grep -Fq 'android.permission.INTERNET' compiled-android-manifest.xml; then
+          manifest_report="$RUNNER_TEMP/harbor-compiled-android-manifest.xml"
+          "$apkanalyzer" manifest print "$apk" > "$manifest_report"
+          grep -F 'android:label="Harbor"' "$manifest_report"
+          grep -F 'android:allowBackup="false"' "$manifest_report"
+          grep -F 'android:usesCleartextTraffic="false"' "$manifest_report"
+          if grep -Fq 'android.permission.INTERNET' "$manifest_report"; then
             echo 'Release APK unexpectedly requests INTERNET.' >&2
             exit 1
           fi
