@@ -12,6 +12,8 @@ void main() {
     final bootstrap = await File('web/flutter_bootstrap.js').readAsString();
     final serviceWorker = await File('web/harbor_service_worker.js')
         .readAsString();
+    final releaseFinalizer = await File('tool/finalize_web_release.dart')
+        .readAsString();
 
     expect(
       pubspec,
@@ -29,8 +31,8 @@ void main() {
       contains('harbor-shell-${HarborReleaseInfo.version}'),
     );
     expect(
-      serviceWorker,
-      contains('flutter_bootstrap.js?v=${HarborReleaseInfo.version}'),
+      releaseFinalizer,
+      contains("'url': './flutter_bootstrap.js?v=\$release'"),
     );
   });
 

@@ -6,12 +6,15 @@ void main() {
   late String index;
   late String bootstrap;
   late String serviceWorker;
+  late String releaseFinalizer;
   late String pubspec;
 
   setUpAll(() async {
     index = await File('web/index.html').readAsString();
     bootstrap = await File('web/flutter_bootstrap.js').readAsString();
     serviceWorker = await File('web/harbor_service_worker.js').readAsString();
+    releaseFinalizer = await File('tool/finalize_web_release.dart')
+        .readAsString();
     pubspec = await File('pubspec.yaml').readAsString();
   });
 
@@ -59,15 +62,48 @@ void main() {
     expect(bootstrap, contains('HARBOR_RELEASE = "$release"'));
     expect(index, contains('flutter_bootstrap.js?v=$release'));
     expect(serviceWorker, contains('harbor-shell-$release'));
-    expect(serviceWorker, contains('flutter_bootstrap.js?v=$release'));
-    expect(serviceWorker, contains('"./index.html"'));
-    expect(serviceWorker, contains('"./main.dart.wasm"'));
+    expect(releaseFinalizer, contains("'./flutter_bootstrap.js?v=\$release'"));
+    expect(releaseFinalizer, contains("'index.html'"));
+    expect(releaseFinalizer, contains("'main.dart.wasm'"));
   });
 
-  test('new release cache bypasses stale runtime assets during install', () {
-    expect(serviceWorker, contains('new Request(asset, { cache: "reload" })'));
-    expect(serviceWorker, contains('await fetch(request)'));
-    expect(serviceWorker, contains('await cache.put(asset, response)'));
+  test('new release is verified in staging before cache promotion', () {
+    expect(serviceWorker, contains('STAGING_CACHE_NAME'));
+    expect(
+      serviceWorker,
+      contains('new Request(asset.url, { cache: "reload" })'),
+    );
+    expect(serviceWorker, contains('await verifyReleaseResponse('));
+    expect(serviceWorker, contains('crypto.subtle.digest("SHA-256", body)'));
+    expect(serviceWorker, contains('body.byteLength !== asset.bytes'));
+    expect(serviceWorker, contains('await staging.put(asset.url, verified)'));
+    expect(serviceWorker, contains('await release.put(asset.url, verified)'));
+    expect(serviceWorker, contains('await self.skipWaiting()'));
     expect(serviceWorker, isNot(contains('cache.addAll(RELEASE_CORE)')));
+  });
+
+  test('failed or abandoned updates cannot become fallback caches', () {
+    expect(
+      RegExp(r'caches\.delete\(STAGING_CACHE_NAME\)').allMatches(serviceWorker),
+      hasLength(greaterThanOrEqualTo(3)),
+    );
+    expect(
+      RegExp(r'caches\.delete\(CACHE_NAME\)').allMatches(serviceWorker),
+      hasLength(greaterThanOrEqualTo(2)),
+    );
+    expect(serviceWorker, contains('!name.endsWith(STAGING_SUFFIX)'));
+    expect(serviceWorker, contains('matchPreviousRelease'));
+    expect(serviceWorker, isNot(contains('caches.match(event.request)')));
+    expect(serviceWorker, isNot(contains('caches.match("./index.html")')));
+  });
+
+  test('unfinalized web build fails closed', () {
+    expect(serviceWorker, contains('HARBOR_RELEASE_ASSETS_START'));
+    expect(serviceWorker, contains('HARBOR_RELEASE_ASSETS_END'));
+    expect(serviceWorker, contains('if (RELEASE_ASSETS.length === 0)'));
+    expect(
+      serviceWorker,
+      contains("throw new Error(\"Harbor's web release was not finalized.\")"),
+    );
   });
 }

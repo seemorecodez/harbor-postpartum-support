@@ -58,6 +58,11 @@ jobs:
       - name: Build release WebAssembly web app
         run: flutter build web --release --wasm --no-pub
 
+      - name: Pin and verify release asset integrity
+        run: |
+          dart run tool/finalize_web_release.dart build/web
+          dart run tool/finalize_web_release.dart --verify build/web
+
       - name: Verify commands did not change governed source
         shell: bash
         run: |

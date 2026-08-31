@@ -2,7 +2,7 @@
 
 [![Verify Harbor](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml/badge.svg)](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml)
 
-Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 23, not a clinically approved release or a claim that all five native applications are finished.
+Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 24, not a clinically approved release or a claim that all five native applications are finished.
 
 ## Implemented production slice
 
@@ -13,7 +13,7 @@ Harbor is a private, women-centered postpartum support application targeting web
 - Deterministic factual reflections with no diagnosis, cause inference, risk score, streak, or remote AI.
 - A single typed clipboard boundary for exact-preview, deliberate copies of unanswered clinician questions, care requests, or bounded diagnostics; Harbor has no application log sink or crash-reporting SDK.
 - Searchable bundled postpartum body, mood, and baby guide with stage, severity, source metadata, urgent routing, and typed coverage for hemorrhage, preeclampsia, infection, psychosis, suicidality, newborn fever, breathing difficulty, poor feeding, and jaundice.
-- Versioned offline web shell and a startup surface removed by Flutter's real first-frame event, with explicit pointer and Enter/Space retry activation after fatal loading failure.
+- Versioned offline web shell with SHA-256 and byte-length-pinned release assets, verify-before-promote cache installation, completed-release-only fallback, and a startup surface removed by Flutter's real first-frame event, with explicit pointer and Enter/Space retry activation after fatal loading failure.
 - Full erase back to onboarding.
 - Versioned encrypted-data migration with verified staging/commit, explicit future/corrupt-data lockout, Retry, and separately confirmed erasure.
 - Responsive phone navigation, scalable brand/dropdown layouts, accessible control labels, platform-driven high contrast and reduced motion, and regression coverage for 200% text, contrast, target size, and keyboard activation.
@@ -26,7 +26,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 ## Verified on this Windows host
 
 - Flutter 3.47.2 / Dart 3.13.2 static analysis: clean.
-- Ninety-five automated tests: all pass, including passphrase-wrapped key metadata/tamper/future-version rejection, wrong-passphrase and throttling behavior, enable/change/disable/erase flows, lock-during-save recovery, app-lock UI and 200% text, the nine-scenario clinical-safety matrix, schema migration, encrypted story resonance, bounded diagnostics, single-sink clipboard/logging contracts, web privacy contracts, recovery interactions, phone/desktop responsiveness, platform high contrast and reduced motion, four governed real-UI golden comparisons, labels, contrast, target sizes, and keyboard activation.
+- One hundred one automated tests: all pass, including passphrase-wrapped key metadata/tamper/future-version rejection, wrong-passphrase and throttling behavior, enable/change/disable/erase flows, lock-during-save recovery, app-lock UI and 200% text, the nine-scenario clinical-safety matrix, schema migration, encrypted story resonance, bounded diagnostics, single-sink clipboard/logging contracts, staged web-release integrity and corruption rejection, web privacy contracts, recovery interactions, phone/desktop responsiveness, platform high contrast and reduced motion, four governed real-UI golden comparisons, labels, contrast, target sizes, and keyboard activation.
 - Release WebAssembly web build: passes.
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
@@ -39,6 +39,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 - The exact compiled alpha.21 app applies a distinct WCAG-enhanced plum high-contrast theme when the platform requests high contrast and removes Harbor-owned onboarding, route, dialog, snackbar, and theme transition durations when the platform requests reduced motion. Four focused preference tests pass alongside the full 87-test suite. A compiled default-preference browser smoke verified the alpha.21 identity, urgent-support path, reload, and empty console; its probe recorded 27 same-origin GETs, zero request bodies, failures, non-GETs, or sentinel hits. Active preference behavior still requires real OS/browser and assistive-technology matrix evidence.
 - Alpha.22 adds governed phone goldens for privacy onboarding, Today, high-contrast Today, and urgent support. Visual inspection rejected two preliminary sets that exposed placeholder font/icon rendering; the corrected harness then exposed and fixed production button-font fallback and insufficient custom-card high-contrast boundaries. Immutable comparison, all 91 tests, analysis, and release Wasm compilation pass. The exact compiled app visibly renders HarborSans controls, reports build 22, preserves urgent support, and has an empty console; its probe recorded 24 same-origin GETs with zero bodies, failures, non-GETs, or sentinel hits.
 - Alpha.23 moves all production clipboard writes behind one typed gateway for clinician questions, care requests, or five-field diagnostics. Four new privacy tests require exact payload identity, reject empty payloads, fail on a second sink or application logging API, and retain the established private-field/cancel checks. In the exact compiled app, all three previews were exercised and canceled without touching the test host, About reported build 23, the console was empty, and the probe recorded 24 same-origin GETs with zero bodies, failures, non-GETs, or sentinel hits. Native clipboard/crash/recents forensics and independent review remain open.
+- Alpha.24 finalizes every web release with a SHA-256 and byte-length manifest, downloads core files into a staging cache, verifies them before promotion, rejects unfinalized workers, ignores partial caches during fallback, and retains prior completed releases for recovery. Deterministic tests reject truncated precache files and corrupt lazy Wasm. In a fresh same-origin Chromium drill, a four-byte alpha.24 Wasm response was rejected, alpha.23 remained available online and with the server stopped, the valid finalized alpha.24 then activated and remained available offline. Across the three served phases the probe recorded 73 GETs, zero request bodies, failures, non-GETs, or sentinel hits; the only warning was the bounded public code `harbor_offline_update_failed`. This does not test quota eviction, hostile hosting, public deployment, or non-Chromium browsers.
 - [Public GitHub clean-checkout verification](https://github.com/seemorecodez/harbor-postpartum-support/actions/runs/33440491058) for alpha.23 on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 95 tests including strict Linux goldens, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
 - The downloadable alpha.23 web ZIP matches all 49 files in that public CI artifact, and the source ZIP matches all 205 raw Git blobs at commit `961ca9f`. Source packaging reads raw Git blobs to avoid platform newline normalization. Cross-OS binary reproducibility remains an explicit gap.
 
@@ -51,6 +52,8 @@ flutter pub get
 flutter analyze
 flutter test
 flutter build web --release --wasm
+dart run tool/finalize_web_release.dart build/web
+dart run tool/finalize_web_release.dart --verify build/web
 ```
 
 Android requires the Android SDK and personal acceptance of its licenses. iOS and macOS builds require macOS with Xcode. Windows currently requires Developer Mode or an equivalent symlink-capable build environment for the selected dependencies.

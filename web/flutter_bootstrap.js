@@ -1,7 +1,7 @@
 {{flutter_js}}
 {{flutter_build_config}}
 
-const HARBOR_RELEASE = "0.1.0-alpha.23";
+const HARBOR_RELEASE = "0.1.0-alpha.24";
 
 const startupShell = document.getElementById("harbor-startup");
 const startupStatus = document.getElementById("harbor-startup-status");
@@ -102,8 +102,8 @@ async function startHarbor() {
   setStartupStatus("Checking your private offline copy…");
   try {
     await prepareHarborOfflineShell();
-  } catch (error) {
-    console.warn("Harbor could not refresh its offline shell.", error);
+  } catch (_) {
+    console.warn("harbor_offline_update_failed");
   }
 
   setStartupStatus("Opening Harbor…");
@@ -115,8 +115,8 @@ async function startHarbor() {
         forceSingleThreadedSkwasm: true,
       },
     });
-  } catch (error) {
-    console.error("Harbor could not start.", error);
+  } catch (_) {
+    console.error("harbor_startup_failed");
     showStartupFailure();
   }
 }

@@ -118,6 +118,33 @@ void main() {
     expect(ownedJavaScript, isNot(contains('sendBeacon')));
   });
 
+  test('owned JavaScript logs only bounded public startup codes', () {
+    final consoleCalls = RegExp(r'console\.(?:log|info|warn|error|debug)\s*\(')
+        .allMatches('$bootstrap\n$serviceWorker');
+    expect(consoleCalls, hasLength(2));
+    expect(bootstrap, contains('console.warn("harbor_offline_update_failed")'));
+    expect(bootstrap, contains('console.error("harbor_startup_failed")'));
+    expect(
+      bootstrap,
+      isNot(
+        contains(
+          'console.warn('
+          '"Harbor',
+        ),
+      ),
+    );
+    expect(
+      bootstrap,
+      isNot(
+        contains(
+          'console.error('
+          '"Harbor',
+        ),
+      ),
+    );
+    expect(serviceWorker, isNot(contains('console.')));
+  });
+
   test('web app lock is wired to the document hidden boundary', () async {
     final visibilitySource = await File('lib/core/app_visibility_web.dart')
         .readAsString();

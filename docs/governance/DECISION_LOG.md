@@ -151,6 +151,14 @@
 - **Verification:** Alpha.23 centralizes all production `Clipboard.setData` access in one gateway; static tests fail on any second sink or application logging API, payload tests preserve exact preview/copy identity and reject empty payloads, and existing widget paths prove cancel/no-copy plus private-field exclusion.
 - **Remaining gate:** Real Windows, macOS, Android, and iOS clipboard-history/residual-data forensics; browser and assistive-technology matrices; native crash/recents/thumbnail/backup inspection; and independent privacy/security assessment.
 
+### HBR-DEC-023 — Web releases promote only verified staged caches
+
+- **Decision:** A deployable Harbor web build must be finalized with a manifest that pins every non-worker release payload by SHA-256 and byte length. The service worker downloads core assets into a release-specific staging cache, verifies them before promotion, deletes failed partial state, serves fallback only from completed Harbor release caches, and retains prior completed releases for recovery. An unfinalized source-template worker fails installation closed.
+- **Reason:** A failed `Promise.all` install can leave a partial named cache, and an HTTP 200 response can still contain truncated or corrupt bytes. Cache naming and `response.ok` alone cannot prove that a coherent release is available offline.
+- **Trust boundary:** The pins detect accidental transport, storage, and partial-update corruption. The browser-installed worker is the manifest trust root and cannot hash itself; this is not a signature, so a compromised same-origin release host can replace both the worker and its manifest. Retaining old completed caches also consumes storage and needs a governed pruning policy.
+- **Verification:** Alpha.24 finalizes and re-verifies 49 manifest entries—48 non-worker payload files plus the versioned bootstrap alias—with 9 core precache entries. Tests reject a truncated core asset and corrupt lazy Wasm, enforce staged promotion/fallback boundaries, and fail an unfinalized worker closed. A fresh-origin Chromium drill rejected four-byte alpha.24 Wasm, retained alpha.23 online/offline, then promoted valid alpha.24 and retained it offline. The three served phases recorded 73 GETs with no bodies, non-GETs, failures, or sentinel hits; the only warning was `harbor_offline_update_failed`.
+- **Remaining gate:** Public-host, supported-browser, hostile-proxy/host, quota/eviction, cache-pruning, content-correction, and operational rollback exercises; signed provenance is still required to address release-origin compromise.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework
