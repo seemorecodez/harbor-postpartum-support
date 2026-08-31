@@ -127,6 +127,14 @@
 - **Verification:** Alpha.20 adds KDF/envelope, vault transaction, controller state/throttle, lock-during-save, widget-flow, privacy-contract, and 200%-text tests; analysis is clean and all 83 tests plus release Wasm compilation pass. A fresh-origin compiled path enabled lock over encrypted synthetic data, hid private UI on manual lock/reload, rejected the wrong phrase, restored only with the correct phrase, kept urgent support accessible, and produced 29 GET-only requests with no bodies, failures, non-GETs, or sentinel exposure.
 - **Remaining gate:** Independent cryptographic/security review, multi-browser background-event testing, native hardware-backed device credentials, app-switcher/screenshot protection, physical-device fallback/lockout/accessibility testing, and public CI/package evidence.
 
+### HBR-DEC-020 — Platform accessibility preferences are authoritative
+
+- **Decision:** Harbor follows the platform's high-contrast and reduced-motion signals without creating a separate stored accessibility profile. High contrast selects a distinct women-centered plum theme with stronger contrast and boundaries. Reduced motion makes Harbor-owned onboarding, route, dialog, snackbar, and theme transitions immediate while preserving urgent support and navigation.
+- **Reason:** Platform preferences are already user-controlled, minimize repeated setup, and avoid storing another potentially personal profile. Accessibility must change actual behavior, not only startup decoration.
+- **Privacy boundary:** The preference is read from the local platform at runtime. Alpha.21 adds no identifier, storage field, dependency, permission, analytics event, or network path.
+- **Verification:** Four focused preference tests validate palette ratios/boundaries, platform theme selection, direct route/dialog behavior, and immediate onboarding changes. Static analysis is clean, all 87 tests and release Wasm compilation pass, and the compiled default-preference smoke preserves urgent support, release identity, reload, empty console, and GET-only/no-body/no-sentinel traffic.
+- **Remaining gate:** Active reduced-motion, high-contrast, forced-colors, browser zoom, touch, screen-reader, accessibility-user, and all-target device matrices plus independent accessibility review.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework

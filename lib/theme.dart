@@ -1,4 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'accessibility.dart';
 
 abstract final class HarborColors {
   static const ink = Color(0xFF302B35);
@@ -13,50 +16,79 @@ abstract final class HarborColors {
   static const line = Color(0xFFE5DAD7);
 }
 
-ThemeData harborTheme() {
+ThemeData harborTheme() => _harborTheme(highContrast: false);
+
+ThemeData harborHighContrastTheme() => _harborTheme(highContrast: true);
+
+ThemeData _harborTheme({required bool highContrast}) {
   final scheme = ColorScheme.fromSeed(
     seedColor: HarborColors.plum,
     brightness: Brightness.light,
     primary: HarborColors.plum,
     secondary: HarborColors.rose,
     tertiary: HarborColors.sage,
-    surface: HarborColors.cream,
+    surface: highContrast ? Colors.white : HarborColors.cream,
     error: HarborColors.clay,
+    contrastLevel: highContrast ? 1 : 0,
   );
+  final background = highContrast ? Colors.white : HarborColors.cream;
+  final textColor = highContrast ? Colors.black : HarborColors.ink;
+  final borderColor = highContrast ? Colors.black : HarborColors.line;
+  final borderWidth = highContrast ? 2.0 : 1.0;
   return ThemeData(
     useMaterial3: true,
     fontFamily: 'HarborSans',
     colorScheme: scheme,
-    scaffoldBackgroundColor: HarborColors.cream,
-    textTheme: const TextTheme(
+    scaffoldBackgroundColor: background,
+    focusColor: highContrast ? const Color(0xFFFFC857) : null,
+    dividerColor: borderColor,
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: HarborPageTransitionsBuilder(
+          PredictiveBackPageTransitionsBuilder(),
+        ),
+        TargetPlatform.iOS: HarborPageTransitionsBuilder(
+          CupertinoPageTransitionsBuilder(),
+        ),
+        TargetPlatform.macOS: HarborPageTransitionsBuilder(
+          CupertinoPageTransitionsBuilder(),
+        ),
+        TargetPlatform.windows: HarborPageTransitionsBuilder(
+          ZoomPageTransitionsBuilder(),
+        ),
+        TargetPlatform.linux: HarborPageTransitionsBuilder(
+          ZoomPageTransitionsBuilder(),
+        ),
+        TargetPlatform.fuchsia: HarborPageTransitionsBuilder(
+          ZoomPageTransitionsBuilder(),
+        ),
+      },
+    ),
+    textTheme: TextTheme(
       displaySmall: TextStyle(
         fontSize: 38,
         height: 1.08,
         fontWeight: FontWeight.w700,
-        color: HarborColors.ink,
+        color: textColor,
       ),
       headlineMedium: TextStyle(
         fontSize: 28,
         height: 1.15,
         fontWeight: FontWeight.w700,
-        color: HarborColors.ink,
+        color: textColor,
       ),
       titleLarge: TextStyle(
         fontSize: 21,
         height: 1.2,
         fontWeight: FontWeight.w700,
-        color: HarborColors.ink,
+        color: textColor,
       ),
-      bodyLarge: TextStyle(fontSize: 17, height: 1.5, color: HarborColors.ink),
-      bodyMedium: TextStyle(
-        fontSize: 15,
-        height: 1.45,
-        color: HarborColors.ink,
-      ),
+      bodyLarge: TextStyle(fontSize: 17, height: 1.5, color: textColor),
+      bodyMedium: TextStyle(fontSize: 15, height: 1.45, color: textColor),
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: HarborColors.cream,
-      foregroundColor: HarborColors.ink,
+    appBarTheme: AppBarTheme(
+      backgroundColor: background,
+      foregroundColor: textColor,
       elevation: 0,
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -64,20 +96,27 @@ ThemeData harborTheme() {
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: HarborColors.line),
+        borderSide: BorderSide(color: borderColor, width: borderWidth),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: HarborColors.line),
+        borderSide: BorderSide(color: borderColor, width: borderWidth),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: highContrast ? Colors.black : HarborColors.plum,
+          width: highContrast ? 3 : 2,
+        ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
     ),
     cardTheme: CardThemeData(
       elevation: 0,
-      color: Colors.white,
+      color: background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: HarborColors.line),
+        side: BorderSide(color: borderColor, width: borderWidth),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
@@ -90,6 +129,7 @@ ThemeData harborTheme() {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(48, 52),
+        side: BorderSide(color: borderColor, width: borderWidth),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
       ),

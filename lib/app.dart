@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'accessibility.dart';
 import 'content/guide.dart';
 import 'content/stories.dart';
 import 'core/app_lock.dart';
@@ -55,6 +56,11 @@ final class _HarborAppState extends State<HarborApp>
   }
 
   @override
+  void didChangeAccessibilityFeatures() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: controller,
     builder: (context, _) => MaterialApp(
@@ -65,6 +71,15 @@ final class _HarborAppState extends State<HarborApp>
       debugShowCheckedModeBanner: false,
       title: 'Harbor',
       theme: harborTheme(),
+      highContrastTheme: harborHighContrastTheme(),
+      themeAnimationStyle:
+          WidgetsBinding
+              .instance
+              .platformDispatcher
+              .accessibilityFeatures
+              .disableAnimations
+          ? AnimationStyle.noAnimation
+          : null,
       home: controller.loading
           ? const _LoadingScreen()
           : controller.error != null
@@ -126,7 +141,7 @@ final class _AppLockScreenState extends State<AppLockScreen> {
   }
 
   Future<void> showRecovery() async {
-    final erase = await showDialog<bool>(
+    final erase = await showHarborDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
@@ -148,7 +163,7 @@ final class _AppLockScreenState extends State<AppLockScreen> {
       ),
     );
     if (erase != true || !mounted) return;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showHarborDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
@@ -294,7 +309,7 @@ final class VaultProblemScreen extends StatelessWidget {
       controller.error is UnsupportedHarborAppLockVersionException;
 
   Future<void> _confirmErase(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showHarborDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
@@ -321,7 +336,8 @@ final class VaultProblemScreen extends StatelessWidget {
       await controller.eraseAll();
     } catch (_) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      showHarborSnackBar(
+        context,
         const SnackBar(
           content: Text(
             'Harbor could not erase the local vault. Your data was not replaced.',
@@ -445,7 +461,8 @@ final class _OnboardingScreenState extends State<OnboardingScreen> {
       await widget.controller.finishOnboarding(stage);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      showHarborSnackBar(
+        context,
         const SnackBar(
           content: Text(
             'Harbor could not save this setup. Nothing was sent anywhere.',
@@ -496,7 +513,10 @@ final class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 28),
                   AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
+                    duration: harborMotionDuration(
+                      context,
+                      const Duration(milliseconds: 180),
+                    ),
                     child: page,
                   ),
                   const SizedBox(height: 28),
@@ -915,7 +935,8 @@ final class TodayScreen extends StatelessWidget {
                   : () async {
                       await controller.addQuestion(reflectionQuestion);
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      showHarborSnackBar(
+                        context,
                         const SnackBar(
                           content: Text(
                             'Factual reflection added to your private clinician questions.',
@@ -1136,7 +1157,7 @@ final class _QuestionsScreenState extends State<QuestionsScreen> {
       widget.controller.data.clinicianQuestions,
     );
     if (text.isEmpty) return;
-    final approved = await showDialog<bool>(
+    final approved = await showHarborDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Copy these clinician questions?'),
@@ -1166,7 +1187,8 @@ final class _QuestionsScreenState extends State<QuestionsScreen> {
     if (approved != true) return;
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    showHarborSnackBar(
+      context,
       const SnackBar(content: Text('Clinician questions copied.')),
     );
   }
@@ -1310,7 +1332,8 @@ final class _PlanScreenState extends State<PlanScreen> {
     );
     await widget.controller.saveCareAsk(careAsk);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    showHarborSnackBar(
+      context,
       const SnackBar(
         content: Text('Care tools encrypted and saved on this device.'),
       ),
@@ -1329,7 +1352,7 @@ final class _PlanScreenState extends State<PlanScreen> {
     if (draft.need.isEmpty && draft.boundary.isEmpty) return;
     await widget.controller.saveCareAsk(draft);
     if (!mounted) return;
-    final approved = await showDialog<bool>(
+    final approved = await showHarborDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Copy this care request?'),
@@ -1362,7 +1385,8 @@ final class _PlanScreenState extends State<PlanScreen> {
     if (approved != true) return;
     await Clipboard.setData(ClipboardData(text: draft.compose()));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    showHarborSnackBar(
+      context,
       const SnackBar(content: Text('Care request copied to the clipboard.')),
     );
   }
@@ -1782,7 +1806,8 @@ final class _StoriesScreenState extends State<StoriesScreen> {
     );
     await widget.controller.toggleStoryResonance(story.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    showHarborSnackBar(
+      context,
       SnackBar(
         content: Text(
           wasSaved
@@ -1979,8 +2004,7 @@ final class AppLockSettingsScreen extends StatelessWidget {
       ),
     );
     if (message == null || !context.mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    showHarborSnackBar(context, SnackBar(content: Text(message)));
   }
 
   @override
@@ -2581,7 +2605,7 @@ Future<void> showDiagnosticExport(
     error: controller.error,
   );
   final payload = report.encode();
-  final approved = await showDialog<bool>(
+  final approved = await showHarborDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) => AlertDialog(
@@ -2634,14 +2658,16 @@ Future<void> showDiagnosticExport(
   try {
     await Clipboard.setData(ClipboardData(text: payload));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    showHarborSnackBar(
+      context,
       const SnackBar(
         content: Text('Diagnostic details copied after your review.'),
       ),
     );
   } catch (_) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    showHarborSnackBar(
+      context,
       const SnackBar(
         content: Text('Harbor could not copy the diagnostic details.'),
       ),
@@ -2863,7 +2889,7 @@ Future<void> showCheckIn(
   var anxiety = 3.0;
   var rest = 3.0;
   final note = TextEditingController();
-  final saved = await showDialog<bool>(
+  final saved = await showHarborDialog<bool>(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
@@ -2983,7 +3009,7 @@ Future<void> editJournal(
 }) async {
   final title = TextEditingController(text: existing?.title ?? '');
   final body = TextEditingController(text: existing?.body ?? '');
-  final saved = await showDialog<bool>(
+  final saved = await showHarborDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(
@@ -3040,7 +3066,7 @@ Future<void> confirmDelete(
   Future<void> Function() action, {
   String destructiveLabel = 'Delete',
 }) async {
-  final confirmed = await showDialog<bool>(
+  final confirmed = await showHarborDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(message),
@@ -3064,7 +3090,7 @@ Future<void> confirmDelete(
 }
 
 Future<void> showEmergencySupport(BuildContext context) async {
-  await showDialog<void>(
+  await showHarborDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: const Text('Urgent support'),

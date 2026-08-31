@@ -2,7 +2,7 @@
 
 [![Verify Harbor](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml/badge.svg)](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml)
 
-Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 20, not a clinically approved release or a claim that all five native applications are finished.
+Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 21, not a clinically approved release or a claim that all five native applications are finished.
 
 ## Implemented production slice
 
@@ -16,7 +16,7 @@ Harbor is a private, women-centered postpartum support application targeting web
 - Versioned offline web shell and a startup surface removed by Flutter's real first-frame event, with explicit pointer and Enter/Space retry activation after fatal loading failure.
 - Full erase back to onboarding.
 - Versioned encrypted-data migration with verified staging/commit, explicit future/corrupt-data lockout, Retry, and separately confirmed erasure.
-- Responsive phone navigation, scalable brand/dropdown layouts, accessible control labels, and regression coverage for 200% text, contrast, target size, and keyboard activation.
+- Responsive phone navigation, scalable brand/dropdown layouts, accessible control labels, platform-driven high contrast and reduced motion, and regression coverage for 200% text, contrast, target size, and keyboard activation.
 - Offline editorial story drafts with explicit non-live/provenance labels, local search/topic filters, and encrypted private resonance stored through schema 3.
 - An accessible About/content-version path that exposes the exact app, build, schema, guide, and Stories catalog identities together with their unapproved engineering-alpha status.
 - A manual diagnostic preview containing only app version, build number, platform, data-schema version, and a bounded error code; nothing is copied until explicit confirmation.
@@ -26,7 +26,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 ## Verified on this Windows host
 
 - Flutter 3.47.2 / Dart 3.13.2 static analysis: clean.
-- Eighty-three automated tests: all pass, including passphrase-wrapped key metadata/tamper/future-version rejection, wrong-passphrase and throttling behavior, enable/change/disable/erase flows, lock-during-save recovery, app-lock UI and 200% text, the nine-scenario clinical-safety matrix, schema migration, encrypted story resonance, bounded diagnostics, web privacy contracts, recovery interactions, phone/desktop responsiveness, labels, contrast, target sizes, and keyboard activation.
+- Eighty-seven automated tests: all pass, including passphrase-wrapped key metadata/tamper/future-version rejection, wrong-passphrase and throttling behavior, enable/change/disable/erase flows, lock-during-save recovery, app-lock UI and 200% text, the nine-scenario clinical-safety matrix, schema migration, encrypted story resonance, bounded diagnostics, web privacy contracts, recovery interactions, phone/desktop responsiveness, platform high contrast and reduced motion, labels, contrast, target sizes, and keyboard activation.
 - Release WebAssembly web build: passes.
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
@@ -36,6 +36,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 - The compiled alpha.18 diagnostic path visibly displayed its exact five-field payload, cancelled without copying, added zero requests during preview/cancel, produced zero non-GET traffic or sentinel hits, and logged no browser warnings or errors.
 - The exact compiled alpha.19 guide visibly exercised postpartum psychosis and infection searches, the corrected ACOG/NIMH/AAP draft boundary, NIMH source metadata, non-diagnostic emergency copy, and the 911/988 support dialog. Its fresh-origin pass used 24 same-origin GETs and a cached follow-up infection pass used 2; both had zero non-GETs, failed responses, sentinel hits, or browser warnings/errors.
 - The compiled alpha.20 web path enabled app lock over an existing encrypted vault, hid private UI on manual lock and reload, rejected a wrong passphrase, restored the vault only after the correct passphrase, retained locked-screen urgent support, and kept the passphrase out of storage. A fresh-origin probe covering onboarding, encrypted synthetic journal save, lock setup, manual lock, wrong/correct unlock, and reload recorded 29 same-origin GETs, zero request bodies, failures, non-GETs, or sentinel hits, with an empty browser console. The tested embedded host did not expose tab visibility/focus changes, so automatic tab-switch locking is not claimed for that host.
+- The exact compiled alpha.21 app applies a distinct WCAG-enhanced plum high-contrast theme when the platform requests high contrast and removes Harbor-owned onboarding, route, dialog, snackbar, and theme transition durations when the platform requests reduced motion. Four focused preference tests pass alongside the full 87-test suite. A compiled default-preference browser smoke verified the alpha.21 identity, urgent-support path, reload, and empty console; its probe recorded 27 same-origin GETs, zero request bodies, failures, non-GETs, or sentinel hits. Active preference behavior still requires real OS/browser and assistive-technology matrix evidence.
 - [Public GitHub clean-checkout verification](https://github.com/seemorecodez/harbor-postpartum-support/actions/runs/33425147098) for alpha.20 on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 83 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
 - The downloadable alpha.20 web ZIP matches all 49 files in that public CI artifact, and the source ZIP matches all 191 raw Git blobs at commit `93db961`. Source packaging reads raw Git blobs to avoid platform newline normalization. Cross-OS binary reproducibility remains an explicit gap.
 
