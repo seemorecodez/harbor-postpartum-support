@@ -23,11 +23,12 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 ## Verified on this Windows host
 
 - Flutter 3.47.2 / Dart 3.13.2 static analysis: clean.
-- Forty-three automated tests: all pass, including schema-1/2-to-3 migration, encrypted story resonance, catalog provenance, non-simulated-community rules, forced fresh runtime caching during release updates, legacy migration, interrupted-write recovery, future-version lockout, tamper rejection, missing-key protection, recovery-screen interactions, phone/desktop responsiveness, 200% text, labels, contrast, target sizes, and keyboard activation.
+- Forty-eight automated tests: all pass, including schema-1/2-to-3 migration, encrypted story resonance, catalog provenance, non-simulated-community rules, forced fresh runtime caching during release updates, legacy migration, interrupted-write recovery, future-version lockout, tamper rejection, missing-key protection, recovery-screen interactions, web privacy contracts, phone/desktop responsiveness, 200% text, labels, contrast, target sizes, and keyboard activation.
 - Release WebAssembly web build: passes.
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
 - A real alpha.15-to-alpha.16 browser upgrade preserved an encrypted schema-2 journal, migrated to schema 3, loaded the seven-destination app on the first corrected update, saved encrypted story resonance, survived restart, and reloaded with the server stopped. The first attempt exposed and led to a fix for stale unversioned runtime reuse during service-worker cache installation.
+- A production-style loopback traffic probe observed a compiled-browser synthetic journal save, reload, and confirmed deletion: save/delete added no requests, only same-origin asset GET/HEAD requests occurred, and the unique journal sentinel appeared in no request path, header, or body. This is narrow local evidence, not a public-host or signed-native privacy certification.
 - Public GitHub clean-checkout verification on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 43 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
 
 These checks do not prove clinical approval, independent security/accessibility review, public deployment, native compilation, signing, installation, store acceptance, or physical-device behavior.
@@ -48,6 +49,7 @@ Android requires the Android SDK and personal acceptance of its licenses. iOS an
 - [End-to-end roadmap](docs/HARBOR_END_TO_END_ROADMAP.md)
 - [Requirements traceability](docs/governance/REQUIREMENTS_TRACEABILITY.md)
 - [Release gates and verification evidence](docs/governance/RELEASE_GATES.md)
+- [Threat model](docs/governance/THREAT_MODEL.md)
 - [Privacy boundary for the requested anonymous board](docs/governance/ANONYMOUS_MESSAGE_BOARD_OPTIONS.md)
 - [Story provenance register](docs/governance/STORY_PROVENANCE_REGISTER.md)
 - [Security reporting](SECURITY.md)
