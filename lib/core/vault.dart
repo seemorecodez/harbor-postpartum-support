@@ -227,7 +227,9 @@ final class HarborVault {
   ) async {
     await _records.write(keyName, encoded);
     final persisted = await _records.read(keyName);
-    if (persisted == null) throw StateError('Harbor could not verify local data.');
+    if (persisted == null) {
+      throw StateError('Harbor could not verify local data.');
+    }
     final verified = await _decryptEnvelope(persisted, key);
     if (verified.wasMigrated || verified.data.encode() != expected.encode()) {
       throw StateError('Harbor could not verify local data.');

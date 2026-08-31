@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Check out the exact revision
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Install pinned Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
@@ -56,7 +56,7 @@ jobs:
           test -z "$(git status --porcelain --untracked-files=all)"
 
       - name: Preserve the verified web build
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: harbor-web-${{ github.sha }}
           path: build/web

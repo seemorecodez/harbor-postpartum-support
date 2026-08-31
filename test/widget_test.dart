@@ -198,9 +198,7 @@ void main() {
     (tester) async {
       final future = legacyVersion1Data()..['schemaVersion'] = 99;
       final originalEnvelope = await encryptedVaultEnvelope(future);
-      final records = TestValueStore({
-        HarborVault.recordKey: originalEnvelope,
-      });
+      final records = TestValueStore({HarborVault.recordKey: originalEnvelope});
       final keys = seededKeyStore();
       final controller = HarborController(
         HarborVault(records: records, keys: keys),
@@ -243,28 +241,29 @@ void main() {
     },
   );
 
-  testWidgets('missing key shows the protected-data screen without replacement', (
-    tester,
-  ) async {
-    final records = TestValueStore({
-      HarborVault.recordKey: await encryptedVaultEnvelope(
-        legacyVersion1Data(),
-      ),
-    });
-    final missingKeys = TestValueStore();
-    final controller = HarborController(
-      HarborVault(records: records, keys: missingKeys),
-    );
-    await controller.initialize();
+  testWidgets(
+    'missing key shows the protected-data screen without replacement',
+    (tester) async {
+      final records = TestValueStore({
+        HarborVault.recordKey: await encryptedVaultEnvelope(
+          legacyVersion1Data(),
+        ),
+      });
+      final missingKeys = TestValueStore();
+      final controller = HarborController(
+        HarborVault(records: records, keys: missingKeys),
+      );
+      await controller.initialize();
 
-    await tester.pumpWidget(HarborApp(controller: controller));
+      await tester.pumpWidget(HarborApp(controller: controller));
 
-    expect(
-      find.text('Harbor could not safely unlock your data.'),
-      findsOneWidget,
-    );
-    expect(find.text('A space that belongs to you.'), findsNothing);
-    expect(missingKeys.values, isEmpty);
-    expect(missingKeys.writes, isEmpty);
-  });
+      expect(
+        find.text('Harbor could not safely unlock your data.'),
+        findsOneWidget,
+      );
+      expect(find.text('A space that belongs to you.'), findsNothing);
+      expect(missingKeys.values, isEmpty);
+      expect(missingKeys.writes, isEmpty);
+    },
+  );
 }
