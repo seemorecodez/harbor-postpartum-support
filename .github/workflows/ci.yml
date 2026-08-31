@@ -46,6 +46,15 @@ jobs:
       - name: Test
         run: flutter test --no-pub
 
+      - name: Preserve visual-regression differences
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: harbor-golden-failures-${{ github.sha }}
+          path: test/failures
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Build release WebAssembly web app
         run: flutter build web --release --wasm --no-pub
 
