@@ -141,7 +141,7 @@
 - **Reason:** Screenshot existence is not evidence of visual correctness. The first two generated sets contained placeholder glyphs and were rejected by direct inspection; the accepted set then exposed and drove fixes for production button typography and custom-panel high-contrast boundaries.
 - **Update boundary:** A reference may change only with an intentional product change, direct inspection of every affected image, a written evidence update, immutable non-update comparison, full regression/build gates, and a reviewable commit. `--update-goldens` is forbidden in CI.
 - **Privacy boundary:** References contain only fixed product copy and empty/local default state—no journal, check-in, diagnostic, identifier, device, or community data.
-- **Remaining gate:** Pass both strict Windows-local and Linux-public comparisons, expand only to high-risk screens, and obtain accessibility-user/design review. Goldens do not replace real browser, device, screen-reader, or clinical acceptance.
+- **Remaining gate:** Add separately reviewed references before running on another test OS, expand only to high-risk screens, and obtain accessibility-user/design review. Goldens do not replace real browser, device, screen-reader, or clinical acceptance.
 
 ## Decisions pending evidence
 
