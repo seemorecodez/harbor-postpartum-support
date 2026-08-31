@@ -55,7 +55,7 @@ The following requirements govern every phase:
 
 ### Pending scope decision: anonymous message board
 
-A real cross-user board was requested on August 30, 2026. It is not silently added to the accepted local-only scope because publishing requires a network service and remote message storage. `harbor-governance/ANONYMOUS_MESSAGE_BOARD_OPTIONS.md` defines the recommended separate opt-in, accountless, text-only, human-moderated service and the honest anonymity limits. Implementation begins only after explicit approval that deliberately published posts may leave the device. Fake posts or bundled stories presented as live activity remain prohibited.
+A real cross-user board was requested on August 30, 2026. It is not silently added to the accepted local-only scope because publishing requires a network service and remote message storage. `docs/governance/ANONYMOUS_MESSAGE_BOARD_OPTIONS.md` defines the recommended separate opt-in, accountless, text-only, human-moderated service and the honest anonymity limits. Implementation begins only after explicit approval that deliberately published posts may leave the device. Fake posts or bundled stories presented as live activity remain prohibited.
 
 Each installation or browser profile is independent. A browser does not silently synchronize Harbor content to a phone or computer. Any future device transfer must be a deliberate, end-to-end encrypted export/import flow and must pass a separate threat-model gate. The web onboarding must explain that clearing browser/site data erases Harbor data and that the initial static download contacts the chosen host even though Harbor never sends personal content.
 
