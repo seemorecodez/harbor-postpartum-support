@@ -1,5 +1,7 @@
 # Harbor
 
+[![Verify Harbor](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml/badge.svg)](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml)
+
 Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 16, not a clinically approved release or a claim that all five native applications are finished.
 
 ## Implemented production slice
@@ -26,6 +28,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
 - A real alpha.15-to-alpha.16 browser upgrade preserved an encrypted schema-2 journal, migrated to schema 3, loaded the seven-destination app on the first corrected update, saved encrypted story resonance, survived restart, and reloaded with the server stopped. The first attempt exposed and led to a fix for stale unversioned runtime reuse during service-worker cache installation.
+- Public GitHub clean-checkout verification on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 43 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
 
 These checks do not prove clinical approval, independent security/accessibility review, public deployment, native compilation, signing, installation, store acceptance, or physical-device behavior.
 
