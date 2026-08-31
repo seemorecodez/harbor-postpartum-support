@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'accessibility.dart';
@@ -13,6 +12,7 @@ import 'core/diagnostics.dart';
 import 'core/models.dart';
 import 'core/reflections.dart';
 import 'core/release_info.dart';
+import 'core/reviewed_clipboard.dart';
 import 'core/vault.dart';
 import 'theme.dart';
 
@@ -1168,6 +1168,7 @@ final class _QuestionsScreenState extends State<QuestionsScreen> {
       widget.controller.data.clinicianQuestions,
     );
     if (text.isEmpty) return;
+    final payload = HarborReviewedClipboardPayload.clinicianQuestions(text);
     final approved = await showHarborDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -1180,7 +1181,7 @@ final class _QuestionsScreenState extends State<QuestionsScreen> {
               'Only the unanswered questions shown below will leave Harbor. Your journal, check-ins, plans, care data, and answered questions stay in the encrypted vault. Other apps may be able to read the device clipboard.',
             ),
             const SizedBox(height: 14),
-            SelectableText(text),
+            SelectableText(payload.text),
           ],
         ),
         actions: [
@@ -1196,7 +1197,7 @@ final class _QuestionsScreenState extends State<QuestionsScreen> {
       ),
     );
     if (approved != true) return;
-    await Clipboard.setData(ClipboardData(text: text));
+    await copyReviewedHarborPayload(payload);
     if (!mounted) return;
     showHarborSnackBar(
       context,
@@ -1361,6 +1362,7 @@ final class _PlanScreenState extends State<PlanScreen> {
   Future<void> copyCareAsk() async {
     final draft = careAsk;
     if (draft.need.isEmpty && draft.boundary.isEmpty) return;
+    final payload = HarborReviewedClipboardPayload.careRequest(draft.compose());
     await widget.controller.saveCareAsk(draft);
     if (!mounted) return;
     final approved = await showHarborDialog<bool>(
@@ -1376,7 +1378,7 @@ final class _PlanScreenState extends State<PlanScreen> {
             ),
             const SizedBox(height: 14),
             SelectableText(
-              draft.compose(),
+              payload.text,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],
@@ -1394,7 +1396,7 @@ final class _PlanScreenState extends State<PlanScreen> {
       ),
     );
     if (approved != true) return;
-    await Clipboard.setData(ClipboardData(text: draft.compose()));
+    await copyReviewedHarborPayload(payload);
     if (!mounted) return;
     showHarborSnackBar(
       context,
@@ -2615,7 +2617,7 @@ Future<void> showDiagnosticExport(
     platform: currentHarborDiagnosticPlatform(),
     error: controller.error,
   );
-  final payload = report.encode();
+  final payload = HarborReviewedClipboardPayload.diagnostics(report);
   final approved = await showHarborDialog<bool>(
     context: context,
     barrierDismissible: false,
@@ -2642,7 +2644,7 @@ Future<void> showDiagnosticExport(
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: HarborColors.line),
                 ),
-                child: SelectableText(payload),
+                child: SelectableText(payload.text),
               ),
             ),
           ),
@@ -2667,7 +2669,7 @@ Future<void> showDiagnosticExport(
   );
   if (approved != true || !context.mounted) return;
   try {
-    await Clipboard.setData(ClipboardData(text: payload));
+    await copyReviewedHarborPayload(payload);
     if (!context.mounted) return;
     showHarborSnackBar(
       context,

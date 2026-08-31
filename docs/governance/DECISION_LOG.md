@@ -143,6 +143,14 @@
 - **Privacy boundary:** References contain only fixed product copy and empty/local default state—no journal, check-in, diagnostic, identifier, device, or community data.
 - **Remaining gate:** Add separately reviewed references before running on another test OS, expand only to high-risk screens, and obtain accessibility-user/design review. Goldens do not replace real browser, device, screen-reader, or clinical acceptance.
 
+### HBR-DEC-022 — Clipboard and diagnostic disclosure is explicit and typed
+
+- **Decision:** Harbor has one production clipboard sink. It accepts only a typed clinician-question, care-request, or bounded-diagnostic payload. The exact payload object must be shown before an affirmative copy action; canceling performs no write. Harbor has no application log sink or crash-reporting SDK.
+- **Reason:** The product intentionally lets a woman carry selected words into a clinician conversation or care request, so an absolute promise that personal text can never enter clipboard history would be false. The safety requirement is no silent or incidental disclosure, exact review, and a narrow code boundary.
+- **Privacy boundary:** Clipboard copies are deliberate exports. Once copied, the operating system, other applications, a recipient, or clipboard history may retain the text, and Harbor cannot revoke those copies. Private vault fields cannot be silently attached. Diagnostics remain limited to the five-field allowlist and collapse unknown exceptions to a bounded code.
+- **Verification:** Alpha.23 centralizes all production `Clipboard.setData` access in one gateway; static tests fail on any second sink or application logging API, payload tests preserve exact preview/copy identity and reject empty payloads, and existing widget paths prove cancel/no-copy plus private-field exclusion.
+- **Remaining gate:** Real Windows, macOS, Android, and iOS clipboard-history/residual-data forensics; browser and assistive-technology matrices; native crash/recents/thumbnail/backup inspection; and independent privacy/security assessment.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework
