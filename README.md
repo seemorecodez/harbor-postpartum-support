@@ -32,7 +32,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 - A production-style loopback traffic probe observed a compiled-browser synthetic journal save, reload, and confirmed deletion: save/delete added no requests, only same-origin asset GET/HEAD requests occurred, and the unique journal sentinel appeared in no request path, header, or body. This is narrow local evidence, not a public-host or signed-native privacy certification.
 - The compiled alpha.17 Privacy → About path exposes every metadata label/value to browser semantics, retains direct urgent-support access and back navigation, and completed a clean-origin run with only same-origin HTTP 200 asset traffic.
 - Public GitHub clean-checkout verification on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 53 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
-- The downloadable alpha.17 web ZIP matches all 49 files in the public CI artifact; the source ZIP reproducibly matches all 182 Git blobs at commit `570d725`. A Windows-versus-Ubuntu build comparison was not byte-identical and remains an explicit reproducibility gap.
+- The downloadable alpha.17 web ZIP matches all 49 files in the public CI artifact; two clean Ubuntu CI builds produced 49/49 identical application files. The source ZIP reproducibly matches all 182 Git blobs at commit `570d725`. A Windows-versus-Ubuntu build comparison was not byte-identical and remains an explicit reproducibility gap.
 
 These checks do not prove clinical approval, independent security/accessibility review, public deployment, native compilation, signing, installation, store acceptance, or physical-device behavior.
 
