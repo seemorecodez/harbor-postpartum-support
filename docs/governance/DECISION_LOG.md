@@ -163,8 +163,8 @@
 
 - **Decision:** Manual CI compiles the shared source on hosted Android, Windows, macOS, and iOS toolchains and preserves short-lived outputs named `engineering-proof`; these outputs are never described as installers or releases. Android production source disables backup and cleartext traffic, omits the INTERNET permission, and excludes all supported credential/device storage domains from both legacy cloud-backup and Android 12+ cloud/device-transfer rules.
 - **Reason:** Native source folders and successful compilation are useful architecture evidence but do not establish signing, installation, launch, privacy, accessibility, upgrade, or store readiness. `allowBackup=false` alone does not express the complete Android 12+ device-transfer boundary.
-- **Verification:** First public run `33447199764` compiled Windows, macOS, and no-codesign iOS and exposed a real Android API-37 mismatch plus a Windows verifier defect. Alpha.25 pins the smallest compatible AGP/API pair, adds four source-contract tests, and adds compiled Android manifest, Windows product/signature, and Apple product-name checks to the corrected run.
-- **Remaining gate:** Corrected public CI; real signed/notarized packaging; clean-device install/launch/upgrade/uninstall; Android cloud-backup and device-transfer attempts; zero-egress, key-custody, deletion, screenshot/recents, accessibility, and physical-device evidence on every target.
+- **Verification:** First public run `33447199764` compiled Windows, macOS, and no-codesign iOS and exposed a real Android API-37 mismatch plus a Windows verifier defect. Alpha.25 pins the smallest compatible AGP/API pair and adds four source-contract tests. Final run `33449252145` passes all Android, Windows, and Apple jobs, including compiled Android manifest, Windows product/signature, Apple product-name, clean-tree, and artifact checks.
+- **Remaining gate:** Real signed/notarized packaging; clean-device install/launch/upgrade/uninstall; Android cloud-backup and device-transfer attempts; zero-egress, key-custody, deletion, screenshot/recents, accessibility, and physical-device evidence on every target.
 
 ## Decisions pending evidence
 
