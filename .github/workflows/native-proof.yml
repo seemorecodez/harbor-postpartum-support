@@ -1,0 +1,134 @@
+name: Native architecture proof
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: harbor-native-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Build unsigned Android release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out the exact revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install pinned Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: 3.47.2
+          channel: stable
+          cache: true
+
+      - name: Record Android toolchain
+        run: flutter doctor -v
+
+      - name: Resolve the committed dependency lock
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build unsigned release APK
+        run: flutter build apk --release --no-pub
+
+      - name: Verify build did not change governed source
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - name: Preserve unsigned Android proof
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: harbor-android-unsigned-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 3
+
+  windows:
+    name: Build unsigned Windows release
+    runs-on: windows-2022
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out the exact revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install pinned Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: 3.47.2
+          channel: stable
+          cache: true
+
+      - name: Record Windows toolchain
+        run: flutter doctor -v
+
+      - name: Resolve the committed dependency lock
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build unsigned Windows release
+        run: flutter build windows --release --no-pub
+
+      - name: Verify build did not change governed source
+        shell: pwsh
+        run: |
+          git diff --exit-code
+          if (git status --porcelain --untracked-files=all) { throw 'Build changed governed source.' }
+
+      - name: Preserve unsigned Windows proof
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: harbor-windows-unsigned-${{ github.sha }}
+          path: build/windows/**/runner/Release
+          if-no-files-found: error
+          retention-days: 3
+
+  apple:
+    name: Build unsigned macOS and iOS releases
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out the exact revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install pinned Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: 3.47.2
+          channel: stable
+          cache: true
+
+      - name: Record Apple toolchain
+        run: flutter doctor -v
+
+      - name: Resolve the committed dependency lock
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build unsigned macOS release
+        run: flutter build macos --release --no-pub
+
+      - name: Build unsigned iOS release
+        run: flutter build ios --release --no-codesign --no-pub
+
+      - name: Verify builds did not change governed source
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - name: Preserve unsigned Apple proofs
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: harbor-apple-unsigned-${{ github.sha }}
+          path: |
+            build/macos/Build/Products/Release/*.app
+            build/ios/iphoneos/Runner.app
+          if-no-files-found: error
+          retention-days: 3

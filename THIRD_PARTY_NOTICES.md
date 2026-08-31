@@ -1,4 +1,4 @@
-# Harbor third-party font notices
+# Harbor third-party notices
 
 Harbor bundles font files so the web application never needs a runtime font CDN request.
 
@@ -17,3 +17,12 @@ Harbor bundles font files so the web application never needs a runtime font CDN 
 - Purpose: local symbol and international fallback for Flutter's web renderer
 
 The generated Flutter `assets/NOTICES` file contains package and framework license notices. Release packaging must preserve both that generated file and this notice. A final independent license/SBOM audit remains a release gate.
+
+## Gradle wrapper
+
+- Files: `android/gradlew`, `android/gradlew.bat`, and `android/gradle/wrapper/gradle-wrapper.jar`
+- Upstream: Gradle Build Tool
+- License: Apache License 2.0
+- Purpose: bootstrap the pinned Gradle distribution for reproducible Android builds
+
+The wrapper downloads the distribution named in `android/gradle/wrapper/gradle-wrapper.properties` during a build. Android release artifacts remain unsigned unless a protected release pipeline supplies signing configuration outside this repository.
