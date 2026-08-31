@@ -123,7 +123,11 @@ ThemeData _harborTheme({required bool highContrast}) {
       style: FilledButton.styleFrom(
         minimumSize: const Size(48, 52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        textStyle: const TextStyle(
+          fontFamily: 'HarborSans',
+          fontWeight: FontWeight.w700,
+          fontSize: 16,
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -131,7 +135,11 @@ ThemeData _harborTheme({required bool highContrast}) {
         minimumSize: const Size(48, 52),
         side: BorderSide(color: borderColor, width: borderWidth),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        textStyle: const TextStyle(
+          fontFamily: 'HarborSans',
+          fontWeight: FontWeight.w700,
+          fontSize: 16,
+        ),
       ),
     ),
   );

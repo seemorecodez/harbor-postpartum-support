@@ -848,8 +848,15 @@ final class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
-    decoration: const BoxDecoration(
-      border: Border(bottom: BorderSide(color: HarborColors.line)),
+    decoration: BoxDecoration(
+      border: Border(
+        bottom: BorderSide(
+          color: MediaQuery.highContrastOf(context)
+              ? Colors.black
+              : HarborColors.line,
+          width: MediaQuery.highContrastOf(context) ? 2 : 1,
+        ),
+      ),
     ),
     child: Row(
       children: [
@@ -1007,40 +1014,44 @@ final class _HeroCard extends StatelessWidget {
   final CheckIn? latest;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [HarborColors.plumDark, HarborColors.plum],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+  Widget build(BuildContext context) {
+    final highContrast = MediaQuery.highContrastOf(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [HarborColors.plumDark, HarborColors.plum],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: highContrast ? Border.all(color: Colors.black, width: 2) : null,
       ),
-      borderRadius: BorderRadius.circular(24),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.water_outlined, color: Colors.white, size: 34),
-        const SizedBox(height: 24),
-        Text(
-          latest == null
-              ? 'You do not have to make this look easy.'
-              : 'Your last check-in is information, not a verdict.',
-          style: Theme.of(context).textTheme.headlineMedium
-              ?.copyWith(color: Colors.white),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          latest == null
-              ? 'Harbor makes room for the whole truth of postpartum life.'
-              : 'Mood ${latest!.mood}/5 | Anxiety ${latest!.anxiety}/5 | Rest ${latest!.rest}/5',
-          style: Theme.of(context).textTheme.bodyLarge
-              ?.copyWith(color: Colors.white.withValues(alpha: 0.88)),
-        ),
-      ],
-    ),
-  );
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.water_outlined, color: Colors.white, size: 34),
+          const SizedBox(height: 24),
+          Text(
+            latest == null
+                ? 'You do not have to make this look easy.'
+                : 'Your last check-in is information, not a verdict.',
+            style: Theme.of(context).textTheme.headlineMedium
+                ?.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            latest == null
+                ? 'Harbor makes room for the whole truth of postpartum life.'
+                : 'Mood ${latest!.mood}/5 | Anxiety ${latest!.anxiety}/5 | Rest ${latest!.rest}/5',
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(color: Colors.white.withValues(alpha: 0.88)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 final class JournalScreen extends StatefulWidget {
@@ -2782,38 +2793,47 @@ final class _InfoPanel extends StatelessWidget {
   final Color tone;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    container: true,
-    child: Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: tone,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: HarborColors.plumDark),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 5),
-                Text(body),
-              ],
+  Widget build(BuildContext context) {
+    final highContrast = MediaQuery.highContrastOf(context);
+    return Semantics(
+      container: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: highContrast ? Colors.white : tone,
+          borderRadius: BorderRadius.circular(18),
+          border: highContrast
+              ? Border.all(color: Colors.black, width: 2)
+              : null,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              color: highContrast ? Colors.black : HarborColors.plumDark,
             ),
-          ),
-        ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(body),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 final class _EmptyState extends StatelessWidget {
@@ -2828,27 +2848,35 @@ final class _EmptyState extends StatelessWidget {
   final String body;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(28),
-    decoration: BoxDecoration(
-      color: HarborColors.blush,
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Column(
-      children: [
-        Icon(icon, size: 34, color: HarborColors.plum),
-        const SizedBox(height: 10),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 6),
-        Text(body, textAlign: TextAlign.center),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final highContrast = MediaQuery.highContrastOf(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: highContrast ? Colors.white : HarborColors.blush,
+        borderRadius: BorderRadius.circular(20),
+        border: highContrast ? Border.all(color: Colors.black, width: 2) : null,
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 34,
+            color: highContrast ? Colors.black : HarborColors.plum,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 6),
+          Text(body, textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
 }
 
 final class _HarborMark extends StatelessWidget {
