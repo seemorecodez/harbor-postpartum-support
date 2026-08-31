@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +8,17 @@ import 'package:harbor_app/core/controller.dart';
 import 'package:harbor_app/core/vault.dart';
 
 void main() {
+  String golden(String name) {
+    final platform = switch (Platform.operatingSystem) {
+      'windows' => 'windows',
+      'linux' => 'linux',
+      final unsupported => throw UnsupportedError(
+        'No reviewed Harbor golden references exist for $unsupported.',
+      ),
+    };
+    return 'goldens/$platform/$name';
+  }
+
   setUpAll(() async {
     final harborFonts = FontLoader('HarborSans')
       ..addFont(rootBundle.load('assets/fonts/HarborSans-Regular.ttf'))
@@ -52,7 +65,7 @@ void main() {
 
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/privacy_onboarding_phone.png'),
+      matchesGoldenFile(golden('privacy_onboarding_phone.png')),
     );
   });
 
@@ -67,7 +80,7 @@ void main() {
 
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/today_phone.png'),
+      matchesGoldenFile(golden('today_phone.png')),
     );
   });
 
@@ -84,7 +97,7 @@ void main() {
 
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/today_high_contrast_phone.png'),
+      matchesGoldenFile(golden('today_high_contrast_phone.png')),
     );
   });
 
@@ -104,7 +117,7 @@ void main() {
     expect(find.text('Call 911'), findsOneWidget);
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/urgent_support_phone.png'),
+      matchesGoldenFile(golden('urgent_support_phone.png')),
     );
   });
 }
