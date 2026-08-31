@@ -90,13 +90,17 @@ final class TestValueStore implements ValueStore {
   TestValueStore([Map<String, String>? seed]) : values = {...?seed};
 
   final Map<String, String> values;
+  final List<String> reads = [];
   final List<String> writes = [];
   final List<String> deletes = [];
   String? failOnceOnWriteKey;
   bool _writeFailed = false;
 
   @override
-  Future<String?> read(String key) async => values[key];
+  Future<String?> read(String key) async {
+    reads.add(key);
+    return values[key];
+  }
 
   @override
   Future<void> write(String key, String value) async {

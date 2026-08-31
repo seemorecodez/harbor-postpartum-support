@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:harbor_app/core/app_lock.dart';
 import 'package:harbor_app/core/controller.dart';
 import 'package:harbor_app/core/models.dart';
 import 'package:harbor_app/core/vault.dart';
@@ -176,4 +179,177 @@ void main() {
     );
     expect(records.values[HarborVault.migrationRecordKey], isNull);
   });
+
+  test('locked startup does not read or expose the encrypted record', () async {
+    final records = TestValueStore();
+    final keys = TestValueStore();
+    final codec = HarborAppLockCodec(iterations: 1000);
+    final first = HarborController(
+      HarborVault(records: records, keys: keys, appLockCodec: codec),
+    );
+    await first.initialize();
+    await first.finishOnboarding('0-6 weeks');
+    await first.saveJournal(
+      JournalEntry(title: 'PRIVATE TITLE', body: 'PRIVATE LOCKED BODY'),
+    );
+    await first.enableAppLock('correct horse harbor');
+    records.reads.clear();
+
+    final restarted = HarborController(
+      HarborVault(records: records, keys: keys, appLockCodec: codec),
+    );
+    await restarted.initialize();
+
+    expect(restarted.appLockEnabled, isTrue);
+    expect(restarted.locked, isTrue);
+    expect(restarted.error, isNull);
+    expect(restarted.data.onboardingComplete, isFalse);
+    expect(restarted.data.journalEntries, isEmpty);
+    expect(records.reads, contains(HarborVault.appLockKey));
+    expect(records.reads, isNot(contains(HarborVault.recordKey)));
+
+    await expectLater(
+      restarted.addQuestion('A write must not happen while locked.'),
+      throwsA(isA<StateError>()),
+    );
+    expect(records.values[HarborVault.recordKey], isNotNull);
+  });
+
+  test(
+    'manual lock clears the in-memory model and correct unlock restores it',
+    () async {
+      final records = MemoryValueStore();
+      final keys = MemoryValueStore();
+      final codec = HarborAppLockCodec(iterations: 1000);
+      final controller = HarborController(
+        HarborVault(records: records, keys: keys, appLockCodec: codec),
+      );
+      await controller.initialize();
+      await controller.finishOnboarding('0-6 weeks');
+      await controller.saveJournal(
+        JournalEntry(title: 'PRIVATE TITLE', body: 'PRIVATE LOCKED BODY'),
+      );
+      await controller.enableAppLock('correct horse harbor');
+
+      controller.lockNow();
+
+      expect(controller.locked, isTrue);
+      expect(controller.data.journalEntries, isEmpty);
+      await expectLater(
+        controller.unlockApp('wrong horse harbor'),
+        throwsA(isA<HarborAppLockPassphraseException>()),
+      );
+      expect(controller.locked, isTrue);
+      expect(controller.data.journalEntries, isEmpty);
+
+      await controller.unlockApp('correct horse harbor');
+      expect(controller.locked, isFalse);
+      expect(controller.data.onboardingComplete, isTrue);
+      expect(controller.data.journalEntries.single.body, 'PRIVATE LOCKED BODY');
+    },
+  );
+
+  test(
+    'repeated wrong attempts add a bounded in-memory unlock delay',
+    () async {
+      var now = DateTime.utc(2026, 8, 31, 12);
+      final controller = HarborController(
+        HarborVault(
+          records: MemoryValueStore(),
+          keys: MemoryValueStore(),
+          appLockCodec: HarborAppLockCodec(iterations: 1000),
+        ),
+        now: () => now,
+      );
+      await controller.initialize();
+      await controller.finishOnboarding('0-6 weeks');
+      await controller.enableAppLock('correct horse harbor');
+      controller.lockNow();
+
+      for (var attempt = 0; attempt < 3; attempt++) {
+        await expectLater(
+          controller.unlockApp('wrong horse harbor'),
+          throwsA(isA<HarborAppLockPassphraseException>()),
+        );
+      }
+      expect(controller.failedUnlockAttempts, 3);
+      expect(controller.unlockWait, const Duration(seconds: 5));
+      await expectLater(
+        controller.unlockApp('correct horse harbor'),
+        throwsA(isA<HarborAppLockThrottledException>()),
+      );
+
+      now = now.add(const Duration(seconds: 6));
+      await controller.unlockApp('correct horse harbor');
+      expect(controller.failedUnlockAttempts, 0);
+      expect(controller.unlockWait, Duration.zero);
+      expect(controller.locked, isFalse);
+    },
+  );
+
+  test(
+    'lock during an active save hides memory immediately and preserves commit',
+    () async {
+      final records = BlockingValueStore();
+      final keys = MemoryValueStore();
+      final controller = HarborController(
+        HarborVault(
+          records: records,
+          keys: keys,
+          appLockCodec: HarborAppLockCodec(iterations: 1000),
+        ),
+      );
+      await controller.initialize();
+      await controller.finishOnboarding('0-6 weeks');
+      await controller.enableAppLock('correct horse harbor');
+      records.blockNextWrite();
+
+      final pendingSave = controller.saveJournal(
+        JournalEntry(title: 'SAVE WHILE HIDING', body: 'Preserve this commit.'),
+      );
+      await records.writeStarted.future;
+      controller.lockNow();
+
+      expect(controller.locked, isTrue);
+      expect(controller.data.journalEntries, isEmpty);
+      records.allowWrite.complete();
+      await pendingSave;
+      expect(controller.locked, isTrue);
+      expect(controller.data.journalEntries, isEmpty);
+
+      await controller.unlockApp('correct horse harbor');
+      expect(controller.data.journalEntries.single.title, 'SAVE WHILE HIDING');
+    },
+  );
+}
+
+final class BlockingValueStore implements ValueStore {
+  final Map<String, String> values = {};
+  Completer<void> writeStarted = Completer<void>();
+  Completer<void> allowWrite = Completer<void>();
+  bool _block = false;
+
+  void blockNextWrite() {
+    writeStarted = Completer<void>();
+    allowWrite = Completer<void>();
+    _block = true;
+  }
+
+  @override
+  Future<String?> read(String key) async => values[key];
+
+  @override
+  Future<void> write(String key, String value) async {
+    if (_block) {
+      _block = false;
+      writeStarted.complete();
+      await allowWrite.future;
+    }
+    values[key] = value;
+  }
+
+  @override
+  Future<void> delete(String key) async {
+    values.remove(key);
+  }
 }

@@ -119,6 +119,14 @@
 - **Verification:** Alpha.19 maps hemorrhage, preeclampsia, infection, psychosis, suicidality, newborn fever, breathing difficulty, poor feeding, and jaundice to 12 source-backed entries. Unit, registry, urgent-language, real-guide UI, 200%-text, release-identity, and compiled Chromium infection/psychosis/support-path checks pass.
 - **Remaining gate:** Named obstetric, pediatric, perinatal mental-health, crisis, and compensated women-led lived-experience review; source expiry; public-host and five-platform assistive-technology verification.
 
+### HBR-DEC-019 — Web app lock wraps the existing vault key and states its event boundary
+
+- **Decision:** The web/shared fallback derives a key from a 12–128 character local passphrase using versioned PBKDF2-HMAC-SHA256 metadata at 600,000 iterations, then wraps the existing random vault key with AES-256-GCM. It stores neither the passphrase, a separate verifier, nor the raw vault key after enable. Native biometric or operating-system credentials remain a separate release requirement rather than being simulated by this fallback.
+- **Reason:** Re-encrypting or recreating personal records during setup would increase data-loss risk, while persisting a verifier would add another offline guessing oracle. A web passphrase can improve closed/reloaded-vault protection but cannot honestly claim native hardware custody.
+- **Lifecycle boundary:** Manual lock and reload are the guaranteed web boundaries. Harbor also locks when standard browser visibility/focus or Flutter lifecycle events are delivered, but product copy warns that an embedded host may withhold them. The tested in-app browser did withhold its own tab transition, so automatic tab-switch locking is not claimed there.
+- **Verification:** Alpha.20 adds KDF/envelope, vault transaction, controller state/throttle, lock-during-save, widget-flow, privacy-contract, and 200%-text tests; analysis is clean and all 83 tests plus release Wasm compilation pass. A fresh-origin compiled path enabled lock over encrypted synthetic data, hid private UI on manual lock/reload, rejected the wrong phrase, restored only with the correct phrase, kept urgent support accessible, and produced 29 GET-only requests with no bodies, failures, non-GETs, or sentinel exposure.
+- **Remaining gate:** Independent cryptographic/security review, multi-browser background-event testing, native hardware-backed device credentials, app-switcher/screenshot protection, physical-device fallback/lockout/accessibility testing, and public CI/package evidence.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework

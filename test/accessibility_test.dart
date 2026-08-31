@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harbor_app/app.dart';
+import 'package:harbor_app/core/app_lock.dart';
 import 'package:harbor_app/core/controller.dart';
 import 'package:harbor_app/core/models.dart';
 import 'package:harbor_app/core/vault.dart';
@@ -190,6 +191,75 @@ void main() {
     await expectCoreGuidelines(tester);
     await tester.tap(find.text('Keep private'));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('app-lock setup reflows at phone size and 200% text', (
+    tester,
+  ) async {
+    useViewport(tester, const Size(390, 844), textScale: 2);
+    final controller = HarborController(
+      HarborVault(
+        records: MemoryValueStore(),
+        keys: MemoryValueStore(),
+        appLockCodec: HarborAppLockCodec(iterations: 1000),
+      ),
+    );
+    await controller.initialize();
+    await controller.finishOnboarding('0-6 weeks');
+    await tester.pumpWidget(HarborApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Privacy').last);
+    await tester.pumpAndSettle();
+    final manage = find.byKey(const ValueKey('manage_app_lock'));
+    await tester.ensureVisible(manage);
+    await tester.tap(manage);
+    await tester.pumpAndSettle();
+    final enable = find.byKey(const ValueKey('enable_app_lock'));
+    await tester.ensureVisible(enable);
+    await tester.tap(enable);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Turn on app lock'), findsWidgets);
+    expect(
+      find.byKey(const ValueKey('new_app_lock_passphrase')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
+  });
+
+  testWidgets('locked screen and recovery remain usable at 200% text', (
+    tester,
+  ) async {
+    useViewport(tester, const Size(390, 844), textScale: 2);
+    final controller = HarborController(
+      HarborVault(
+        records: MemoryValueStore(),
+        keys: MemoryValueStore(),
+        appLockCodec: HarborAppLockCodec(iterations: 1000),
+      ),
+    );
+    await controller.initialize();
+    await controller.finishOnboarding('0-6 weeks');
+    await controller.enableAppLock('correct horse harbor');
+    controller.lockNow();
+    await tester.pumpWidget(HarborApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Harbor is locked.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
+
+    final recovery = find.byKey(const ValueKey('app_lock_recovery'));
+    await tester.ensureVisible(recovery);
+    await tester.tap(recovery);
+    await tester.pumpAndSettle();
+    expect(find.text('No passphrase recovery'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
   });
 
   testWidgets('keyboard can reach and activate onboarding controls', (

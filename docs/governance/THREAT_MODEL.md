@@ -4,13 +4,13 @@
 
 **Updated:** 2026-08-31
 
-**Scope:** Harbor alpha 18 private vault, bounded diagnostics, and offline web/PWA boundary. This is an engineering threat model, not an independent security assessment or security guarantee.
+**Scope:** Harbor alpha 20 private vault, passphrase-wrapped local app lock, bounded diagnostics, and offline web/PWA boundary. This is an engineering threat model, not an independent security assessment or security guarantee.
 
 ## System boundary
 
 Harbor has no account, application backend, analytics service, remote AI, advertising SDK, content API, or cloud synchronization. Personal content is created in the Flutter application, encrypted with AES-256-GCM, and stored in the current browser profile or installed application. The encrypted record and encryption key use separate storage adapters, but both remain on the same device.
 
-The web build crosses the network only to retrieve Harbor's static application files from its chosen host and to refresh its same-origin offline cache. Explicit call, text, and clipboard actions cross into operating-system-controlled surfaces only after a woman activates them. A future multi-user board is outside this model and remains prohibited until its separate network boundary is explicitly approved.
+The web build crosses the network only to retrieve Harbor's static application files from its chosen host and to refresh its same-origin offline cache. Alpha.20 can wrap the existing vault key with a passphrase-derived key and destroy the usable in-memory key on a guaranteed manual/reload boundary; it also requests automatic locking when the browser or platform reports visibility, focus, or lifecycle loss. Explicit call, text, and clipboard actions cross into operating-system-controlled surfaces only after a woman activates them. A future multi-user board is outside this model and remains prohibited until its separate network boundary is explicitly approved.
 
 ## Protected assets
 
@@ -18,6 +18,7 @@ The web build crosses the network only to retrieve Harbor's static application f
 |---|---|
 | Journal entries, check-ins, questions, plans, care tasks, drafts, and private story responses | Confidentiality, integrity, local-only retention, deliberate erasure |
 | Vault encryption key | Confidentiality, separation from the encrypted record, no logging or export |
+| App-lock passphrase and wrapped-key metadata | Passphrase never persisted or logged; authenticated, versioned wrapping; fail-closed unlock; bounded guessing cost |
 | Encrypted vault and migration staging record | Authentication, version integrity, fail-closed recovery, no silent replacement |
 | Clinical, crisis, and provenance content | Source integrity, freshness, review evidence, safe correction |
 | Woman's safety and agency | No delayed-care implication, coercive sharing, hidden publication, or simulated community |
@@ -30,6 +31,8 @@ The web build crosses the network only to retrieve Harbor's static application f
 | Static host → browser | HTML, JavaScript, Wasm, fonts, icons, manifest | Same-origin runtime assets, restrictive meta CSP, no third-party runtime URL, versioned service worker | Host and transport can observe request metadata; deployment headers and public-host verification remain |
 | Flutter UI → local vault | Personal content | AES-256-GCM envelope, authenticated data, write/read/decrypt verification | A compromised same-origin runtime or unlocked device can access the live key and plaintext |
 | Encrypted record store ↔ key store | Ciphertext and separate key | Separate adapter keys, missing-key lockout, authenticated decryption | Browser storage is not equivalent to hardware-backed native key custody |
+| Passphrase entry → wrapped vault key | Passphrase in memory and versioned KDF/AEAD metadata | PBKDF2-HMAC-SHA256 with a random salt and 600,000 iterations; AES-256-GCM wrapping; no passphrase/verifier/raw key persisted after enable; failed unlock delay | A weak passphrase can be guessed offline from copied metadata; JavaScript/Wasm memory and an unlocked runtime are not hardware-isolated |
+| Browser/OS lifecycle → app lock | Visibility, focus, or lifecycle event only | Web visibility/focus listener, Flutter lifecycle observer, immediate UI replacement and in-memory data/key destruction | Some embedded browsers may withhold transitions; manual lock and reload are the only guaranteed web boundaries currently claimed |
 | Current schema → new schema | Decrypted in-memory model and encrypted staging | Deterministic migrations, double verification, locked recovery | Storage pressure, process-kill, rollback, and multi-platform matrices remain |
 | Harbor → clipboard | User-previewed clinician questions, care request, or five-field diagnostic payload | Exact preview and explicit confirmation; diagnostics are generated from a five-field allowlist and bounded error taxonomy | Other apps and clipboard history may retain copied text; installed-target clipboard forensics remain |
 | Harbor → phone/SMS handler | Phone number or crisis short code | Explicit button activation; only `tel:` and `sms:` schemes | OS, carrier, and recipient receive metadata/content outside Harbor's control |
@@ -59,6 +62,7 @@ The web build crosses the network only to retrieve Harbor's static application f
 | TM-009 | Build or action dependency is replaced | Critical supply-chain compromise | Locked Dart dependencies; GitHub actions pinned to immutable commits; public clean-checkout CI | No SBOM, signed provenance, dependency review cadence, or artifact signature yet |
 | TM-010 | Storage quota, offline cache damage, or resource exhaustion prevents access | High denial of service | Visible startup state, bounded retry, prior-cache fallback, locked data recovery | Define performance/storage thresholds and execute quota, eviction, and corrupted-cache scenarios |
 | TM-011 | A fake or unsafe “anonymous” board exposes identity or misinformation | Critical privacy/safety harm | No implemented board and no simulated member activity | Explicit remote-publishing approval, metadata limits, human moderation, retention, report/block, legal, clinical, and security gates are required before code |
+| TM-012 | An attacker guesses the app-lock passphrase offline or a browser withholds a background event | High disclosure | Versioned PBKDF2-HMAC-SHA256 at 600,000 iterations, random salt, authenticated key wrapping, no separate verifier, in-memory online retry delays, guaranteed manual/reload lock, and honest web-limit copy | Offline guessing is not throttled; an unlocked page stays open when a host withholds visibility/focus signals. Require strong user-chosen phrases, multi-browser tests, native hardware-backed credentials, app-switcher/screenshot controls, and independent review |
 
 ## Security requirements and negative tests
 
@@ -67,13 +71,14 @@ The web build crosses the network only to retrieve Harbor's static application f
 | No personal content is sent by Harbor | No backend/network dependency, five web privacy-contract tests, and an instrumented compiled-Chromium save/reload/delete capture with zero personal-content requests | Repeat on supported browsers, public hosting, and signed native builds |
 | Runtime assets do not depend on third-party hosts | Bundled fonts/assets, local HTML attributes, CSP/source contract | Public-host network capture and dependency/SBOM review |
 | Unopenable data fails closed | Vault/controller/widget tests and locked recovery UI | Native interruption and forensic matrices |
+| App lock does not replace or expose the vault key | Production KDF/envelope tests, wrong/tampered/future rejection, raw-key removal checks, enable/change/disable/erase and lock-during-save tests, real-browser manual/reload wrong/correct unlock path | Native device-credential custody, multi-browser background reporting, memory/recents/screenshot forensics, physical-device lockout and recovery testing |
 | External sharing is deliberate | Clipboard preview/cancel tests, diagnostic five-field allowlist/error-redaction tests, a compiled-browser zero-request diagnostic preview/cancel, and explicit `tel:`/`sms:` source contract | Physical-device clipboard, call, SMS, accessibility, and cancel-path tests |
 | Web app cannot be embedded by another origin | Local production-style response verified `frame-ancestors 'none'` and `X-Frame-Options: DENY` | Repeat the header check and a cross-origin iframe test on the public host |
 | Release changes remain reviewable | Clean public Git history and immutable-action CI | Protected branch/review policy, provenance, signatures, and incident drills |
 
 ## Explicit exclusions
 
-This model does not claim protection from a fully compromised operating system, browser, device administrator, malicious accessibility service, screen camera, physical coercion, or a woman deliberately exporting/copying information. It does not cover a community backend because none is authorized or implemented. It does not approve clinical content, public deployment, signed native applications, or store release.
+This model does not claim protection from a fully compromised operating system, browser, device administrator, malicious accessibility service, screen camera, physical coercion, offline guessing of a weak passphrase, an embedded browser that withholds lifecycle/focus signals, or a woman deliberately exporting/copying information. It does not cover a community backend because none is authorized or implemented. It does not approve clinical content, public deployment, signed native applications, or store release.
 
 ## Review triggers
 

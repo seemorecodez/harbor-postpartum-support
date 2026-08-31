@@ -2,12 +2,13 @@
 
 [![Verify Harbor](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml/badge.svg)](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml)
 
-Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 19, not a clinically approved release or a claim that all five native applications are finished.
+Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 20, not a clinically approved release or a claim that all five native applications are finished.
 
 ## Implemented production slice
 
 - Explicit privacy and safety onboarding.
 - AES-256-GCM local vault with a separately stored secure key adapter.
+- Optional local app lock with a passphrase-wrapped vault key, fail-closed unlock, attempt throttling, manual/reload lock boundaries, lifecycle hooks, and a separately confirmed no-recovery erase path. Web automatic locking depends on the browser reporting visibility or focus loss; native device credentials remain a release gate.
 - Local check-ins, journal, clinician questions, hard-day plan, care-load tasks, and editable care-request drafts.
 - Deterministic factual reflections with no diagnosis, cause inference, risk score, streak, or remote AI.
 - Deliberate clipboard review for unanswered clinician questions and care requests.
@@ -25,7 +26,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 ## Verified on this Windows host
 
 - Flutter 3.47.2 / Dart 3.13.2 static analysis: clean.
-- Sixty-three automated tests: all pass, including the nine-scenario clinical-safety matrix, clinical-registry synchronization, urgent-language rules, real-guide search and support routing, schema-1/2-to-3 migration, encrypted story resonance, catalog and release-identity provenance, diagnostic allowlisting and error redaction, non-simulated-community rules, forced fresh runtime caching during release updates, legacy migration, interrupted-write recovery, future-version lockout, tamper rejection, missing-key protection, recovery-screen interactions, web privacy contracts, phone/desktop responsiveness, 200% text, labels, contrast, target sizes, and keyboard activation.
+- Eighty-three automated tests: all pass, including passphrase-wrapped key metadata/tamper/future-version rejection, wrong-passphrase and throttling behavior, enable/change/disable/erase flows, lock-during-save recovery, app-lock UI and 200% text, the nine-scenario clinical-safety matrix, schema migration, encrypted story resonance, bounded diagnostics, web privacy contracts, recovery interactions, phone/desktop responsiveness, labels, contrast, target sizes, and keyboard activation.
 - Release WebAssembly web build: passes.
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
@@ -34,6 +35,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 - The compiled alpha.17 Privacy → About path exposes every metadata label/value to browser semantics, retains direct urgent-support access and back navigation, and completed a clean-origin run with only same-origin HTTP 200 asset traffic.
 - The compiled alpha.18 diagnostic path visibly displayed its exact five-field payload, cancelled without copying, added zero requests during preview/cancel, produced zero non-GET traffic or sentinel hits, and logged no browser warnings or errors.
 - The exact compiled alpha.19 guide visibly exercised postpartum psychosis and infection searches, the corrected ACOG/NIMH/AAP draft boundary, NIMH source metadata, non-diagnostic emergency copy, and the 911/988 support dialog. Its fresh-origin pass used 24 same-origin GETs and a cached follow-up infection pass used 2; both had zero non-GETs, failed responses, sentinel hits, or browser warnings/errors.
+- The compiled alpha.20 web path enabled app lock over an existing encrypted vault, hid private UI on manual lock and reload, rejected a wrong passphrase, restored the vault only after the correct passphrase, retained locked-screen urgent support, and kept the passphrase out of storage. A fresh-origin probe covering onboarding, encrypted synthetic journal save, lock setup, manual lock, wrong/correct unlock, and reload recorded 29 same-origin GETs, zero request bodies, failures, non-GETs, or sentinel hits, with an empty browser console. The tested embedded host did not expose tab visibility/focus changes, so automatic tab-switch locking is not claimed for that host.
 - [Public GitHub clean-checkout verification](https://github.com/seemorecodez/harbor-postpartum-support/actions/runs/33416017415) for alpha.19 on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 63 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
 - The downloadable alpha.19 web ZIP matches all 49 files in that public CI artifact, and the source ZIP matches all 185 raw Git blobs at commit `3dddb3b`. Source packaging reads raw Git blobs to avoid platform newline normalization. Cross-OS binary reproducibility remains an explicit gap.
 

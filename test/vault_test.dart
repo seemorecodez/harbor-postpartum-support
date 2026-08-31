@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:harbor_app/core/app_lock.dart';
 import 'package:harbor_app/core/models.dart';
 import 'package:harbor_app/core/vault.dart';
 
@@ -306,5 +307,197 @@ void main() {
       expect(keys.values, isEmpty);
       expect((await vault.load()).onboardingComplete, isFalse);
     });
+
+    test(
+      'app lock wraps the existing key and blocks startup until unlock',
+      () async {
+        final records = MemoryValueStore();
+        final keys = MemoryValueStore();
+        final codec = HarborAppLockCodec(iterations: 1000);
+        final vault = HarborVault(
+          records: records,
+          keys: keys,
+          appLockCodec: codec,
+        );
+        final privateData = HarborData(
+          onboardingComplete: true,
+          journalEntries: [
+            JournalEntry(
+              title: 'LOCKED PRIVATE TITLE',
+              body: 'LOCKED PRIVATE BODY',
+            ),
+          ],
+        );
+        await vault.save(privateData);
+        final rawKey = keys.values[HarborVault.encryptionKey]!;
+
+        await vault.enableAppLock('correct horse harbor');
+
+        expect(await vault.appLockEnabled(), isTrue);
+        expect(keys.values[HarborVault.encryptionKey], isNull);
+        expect(records.values[HarborVault.appLockStagingKey], isNull);
+        final lockRecord = records.values[HarborVault.appLockKey]!;
+        expect(lockRecord, isNot(contains('correct horse harbor')));
+        expect(lockRecord, isNot(contains(rawKey)));
+        expect(lockRecord, isNot(contains('LOCKED PRIVATE')));
+
+        vault.lockApp();
+        await expectLater(
+          vault.load(),
+          throwsA(isA<HarborAppLockedException>()),
+        );
+
+        final restarted = HarborVault(
+          records: records,
+          keys: keys,
+          appLockCodec: codec,
+        );
+        await expectLater(
+          restarted.unlockAppLock('wrong horse harbor'),
+          throwsA(isA<HarborAppLockPassphraseException>()),
+        );
+        expect(records.values[HarborVault.recordKey], isNotNull);
+        expect(records.values[HarborVault.appLockKey], lockRecord);
+
+        await restarted.unlockAppLock('correct horse harbor');
+        final loaded = await restarted.load();
+        expect(loaded.journalEntries.single.title, 'LOCKED PRIVATE TITLE');
+        expect(loaded.journalEntries.single.body, 'LOCKED PRIVATE BODY');
+        expect(keys.values[HarborVault.encryptionKey], isNull);
+      },
+    );
+
+    test('passphrase change invalidates the old wrapped-key record', () async {
+      final records = MemoryValueStore();
+      final keys = MemoryValueStore();
+      final codec = HarborAppLockCodec(iterations: 1000);
+      final vault = HarborVault(
+        records: records,
+        keys: keys,
+        appLockCodec: codec,
+      );
+      await vault.save(
+        HarborData(
+          journalEntries: [JournalEntry(title: '', body: 'PRESERVE ME')],
+        ),
+      );
+      await vault.enableAppLock('first harbor phrase');
+
+      await expectLater(
+        vault.changeAppLockPassphrase(
+          currentPassphrase: 'wrong current phrase',
+          newPassphrase: 'second harbor phrase',
+        ),
+        throwsA(isA<HarborAppLockPassphraseException>()),
+      );
+      await vault.changeAppLockPassphrase(
+        currentPassphrase: 'first harbor phrase',
+        newPassphrase: 'second harbor phrase',
+      );
+      vault.lockApp();
+
+      await expectLater(
+        vault.unlockAppLock('first harbor phrase'),
+        throwsA(isA<HarborAppLockPassphraseException>()),
+      );
+      await vault.unlockAppLock('second harbor phrase');
+      expect((await vault.load()).journalEntries.single.body, 'PRESERVE ME');
+      expect(records.values[HarborVault.appLockStagingKey], isNull);
+    });
+
+    test('disabling app lock restores automatic local vault opening', () async {
+      final records = MemoryValueStore();
+      final keys = MemoryValueStore();
+      final codec = HarborAppLockCodec(iterations: 1000);
+      final vault = HarborVault(
+        records: records,
+        keys: keys,
+        appLockCodec: codec,
+      );
+      await vault.save(
+        HarborData(
+          journalEntries: [JournalEntry(title: '', body: 'STAYS ENCRYPTED')],
+        ),
+      );
+      await vault.enableAppLock('correct horse harbor');
+
+      await expectLater(
+        vault.disableAppLock('incorrect horse harbor'),
+        throwsA(isA<HarborAppLockPassphraseException>()),
+      );
+      expect(await vault.appLockEnabled(), isTrue);
+      expect(keys.values[HarborVault.encryptionKey], isNull);
+
+      await vault.disableAppLock('correct horse harbor');
+      expect(await vault.appLockEnabled(), isFalse);
+      expect(keys.values[HarborVault.encryptionKey], isNotNull);
+      final restarted = HarborVault(
+        records: records,
+        keys: keys,
+        appLockCodec: codec,
+      );
+      expect(
+        (await restarted.load()).journalEntries.single.body,
+        'STAYS ENCRYPTED',
+      );
+    });
+
+    test(
+      'failed canonical lock write leaves the original vault open',
+      () async {
+        final records = TestValueStore()
+          ..failOnceOnWriteKey = HarborVault.appLockKey;
+        final keys = TestValueStore();
+        final vault = HarborVault(
+          records: records,
+          keys: keys,
+          appLockCodec: HarborAppLockCodec(iterations: 1000),
+        );
+        await vault.save(
+          HarborData(
+            journalEntries: [JournalEntry(title: '', body: 'DO NOT LOSE')],
+          ),
+        );
+
+        await expectLater(
+          vault.enableAppLock('correct horse harbor'),
+          throwsA(isA<StateError>()),
+        );
+
+        expect(await vault.appLockEnabled(), isFalse);
+        expect(records.values[HarborVault.appLockStagingKey], isNull);
+        expect(keys.values[HarborVault.encryptionKey], isNotNull);
+        expect((await vault.load()).journalEntries.single.body, 'DO NOT LOSE');
+      },
+    );
+
+    test(
+      'erase while locked removes vault, wrapped key, and staging',
+      () async {
+        final records = MemoryValueStore();
+        final keys = MemoryValueStore();
+        final vault = HarborVault(
+          records: records,
+          keys: keys,
+          appLockCodec: HarborAppLockCodec(iterations: 1000),
+        );
+        await vault.save(
+          HarborData(
+            journalEntries: [JournalEntry(title: '', body: 'ERASE ME')],
+          ),
+        );
+        await vault.enableAppLock('correct horse harbor');
+        records.values[HarborVault.appLockStagingKey] =
+            records.values[HarborVault.appLockKey]!;
+        vault.lockApp();
+
+        await vault.eraseAll();
+
+        expect(records.values, isEmpty);
+        expect(keys.values, isEmpty);
+        expect(await vault.appLockEnabled(), isFalse);
+        expect((await vault.load()).onboardingComplete, isFalse);
+      },
+    );
   });
 }

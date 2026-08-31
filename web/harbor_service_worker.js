@@ -2,12 +2,12 @@
 
 // Increment this exact cache name for every release. A stale Harbor cache must
 // never silently survive a clinical-content correction or privacy fix.
-const CACHE_NAME = "harbor-shell-0.1.0-alpha.19";
+const CACHE_NAME = "harbor-shell-0.1.0-alpha.20";
 const RELEASE_CORE = [
   "./",
   "./index.html",
   "./flutter_bootstrap.js",
-  "./flutter_bootstrap.js?v=0.1.0-alpha.19",
+  "./flutter_bootstrap.js?v=0.1.0-alpha.20",
   "./flutter.js",
   "./harbor_service_worker.js",
   "./main.dart.js",

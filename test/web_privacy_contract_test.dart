@@ -117,4 +117,20 @@ void main() {
     expect(ownedJavaScript, isNot(contains('EventSource')));
     expect(ownedJavaScript, isNot(contains('sendBeacon')));
   });
+
+  test('web app lock is wired to the document hidden boundary', () async {
+    final visibilitySource = await File('lib/core/app_visibility_web.dart')
+        .readAsString();
+    final appSource = await File('lib/app.dart').readAsString();
+
+    expect(visibilitySource, contains("addEventListener('visibilitychange'"));
+    expect(visibilitySource, contains("visibilityState == 'hidden'"));
+    expect(
+      visibilitySource,
+      contains("removeEventListener('visibilitychange'"),
+    );
+    expect(visibilitySource, contains("addEventListener('blur'"));
+    expect(visibilitySource, contains("removeEventListener('blur'"));
+    expect(appSource, contains('registerVisibilityLock(controller.lockNow)'));
+  });
 }

@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'content/guide.dart';
 import 'content/stories.dart';
+import 'core/app_lock.dart';
+import 'core/app_visibility.dart';
 import 'core/controller.dart';
 import 'core/diagnostics.dart';
 import 'core/models.dart';
@@ -13,15 +15,53 @@ import 'core/release_info.dart';
 import 'core/vault.dart';
 import 'theme.dart';
 
-final class HarborApp extends StatelessWidget {
+final class HarborApp extends StatefulWidget {
   const HarborApp({super.key, required this.controller});
 
   final HarborController controller;
 
   @override
+  State<HarborApp> createState() => _HarborAppState();
+}
+
+final class _HarborAppState extends State<HarborApp>
+    with WidgetsBindingObserver {
+  late final RemoveVisibilityLockListener _removeVisibilityLockListener;
+
+  HarborController get controller => widget.controller;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _removeVisibilityLockListener = registerVisibilityLock(controller.lockNow);
+  }
+
+  @override
+  void dispose() {
+    _removeVisibilityLockListener();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      controller.lockNow();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: controller,
     builder: (context, _) => MaterialApp(
+      key: ValueKey(
+        'harbor-${controller.locked ? 'locked' : 'open'}-'
+        '${controller.error == null ? 'ready' : 'error'}',
+      ),
       debugShowCheckedModeBanner: false,
       title: 'Harbor',
       theme: harborTheme(),
@@ -29,9 +69,216 @@ final class HarborApp extends StatelessWidget {
           ? const _LoadingScreen()
           : controller.error != null
           ? VaultProblemScreen(controller: controller)
+          : controller.locked
+          ? AppLockScreen(controller: controller)
           : controller.data.onboardingComplete
           ? HarborShell(controller: controller)
           : OnboardingScreen(controller: controller),
+    ),
+  );
+}
+
+final class AppLockScreen extends StatefulWidget {
+  const AppLockScreen({super.key, required this.controller});
+
+  final HarborController controller;
+
+  @override
+  State<AppLockScreen> createState() => _AppLockScreenState();
+}
+
+final class _AppLockScreenState extends State<AppLockScreen> {
+  final passphrase = TextEditingController();
+  bool obscure = true;
+  String? message;
+
+  @override
+  void dispose() {
+    passphrase.dispose();
+    super.dispose();
+  }
+
+  Future<void> unlock() async {
+    FocusScope.of(context).unfocus();
+    setState(() => message = null);
+    try {
+      await widget.controller.unlockApp(passphrase.text);
+    } on HarborAppLockThrottledException catch (error) {
+      if (!mounted) return;
+      setState(
+        () => message =
+            'Unlock is briefly paused after repeated attempts. Try again in ${error.remaining.inSeconds + 1} seconds.',
+      );
+    } on HarborAppLockPassphraseException {
+      if (!mounted) return;
+      final wait = widget.controller.unlockWait;
+      setState(
+        () => message = wait > Duration.zero
+            ? 'That passphrase did not match. Try again in ${wait.inSeconds + 1} seconds.'
+            : 'That passphrase did not match. Check spaces and capitalization, then try again.',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(
+        () => message = 'Harbor could not unlock this local vault. Your encrypted data was not replaced.',
+      );
+    }
+  }
+
+  Future<void> showRecovery() async {
+    final erase = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('No passphrase recovery'),
+        content: const Text(
+          'Harbor has no account, server copy, recovery email, or hidden back door. If the passphrase is lost, the encrypted local data cannot be opened. You can keep trying or permanently erase Harbor and start over.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Keep my data'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: HarborColors.clay),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Continue to erase'),
+          ),
+        ],
+      ),
+    );
+    if (erase != true || !mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Permanently erase this Harbor data?'),
+        content: const Text(
+          'This removes the encrypted records, wrapped key, and app lock from this browser or device. It cannot be undone. Nothing will be sent anywhere.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Keep my data'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: HarborColors.clay),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Erase permanently'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await widget.controller.eraseAll();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _HarborMark(),
+                  const SizedBox(height: 28),
+                  const Icon(
+                    Icons.lock_outline,
+                    size: 44,
+                    color: HarborColors.plum,
+                    semanticLabel: 'Harbor local app lock active',
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Harbor is locked.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Enter your Harbor passphrase. The passphrase stays on this device and is used only to unwrap the local vault key.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 22),
+                  TextField(
+                    key: const ValueKey('app_lock_passphrase'),
+                    controller: passphrase,
+                    obscureText: obscure,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    autofillHints: const [AutofillHints.password],
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) =>
+                        widget.controller.unlocking ? null : unlock(),
+                    decoration: InputDecoration(
+                      labelText: 'Harbor passphrase',
+                      suffixIcon: IconButton(
+                        tooltip: obscure
+                            ? 'Show passphrase'
+                            : 'Hide passphrase',
+                        onPressed: () => setState(() => obscure = !obscure),
+                        icon: Icon(
+                          obscure
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (message != null) ...[
+                    const SizedBox(height: 12),
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        message!,
+                        key: const ValueKey('app_lock_message'),
+                        style: const TextStyle(color: HarborColors.clay),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  FilledButton.icon(
+                    key: const ValueKey('unlock_harbor'),
+                    onPressed: widget.controller.unlocking ? null : unlock,
+                    icon: widget.controller.unlocking
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.lock_open_outlined),
+                    label: Text(
+                      widget.controller.unlocking
+                          ? 'Unlocking…'
+                          : 'Unlock Harbor',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    key: const ValueKey('app_lock_recovery'),
+                    onPressed: widget.controller.unlocking
+                        ? null
+                        : showRecovery,
+                    child: const Text('I cannot remember the passphrase'),
+                  ),
+                  const SizedBox(height: 18),
+                  OutlinedButton.icon(
+                    onPressed: () => showEmergencySupport(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: HarborColors.clay,
+                    ),
+                    icon: const Icon(Icons.emergency_outlined),
+                    label: const Text('Open urgent support options'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     ),
   );
 }
@@ -43,7 +290,8 @@ final class VaultProblemScreen extends StatelessWidget {
 
   bool get _needsNewerVersion =>
       controller.error is UnsupportedHarborDataVersionException ||
-      controller.error is UnsupportedHarborVaultVersionException;
+      controller.error is UnsupportedHarborVaultVersionException ||
+      controller.error is UnsupportedHarborAppLockVersionException;
 
   Future<void> _confirmErase(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -1716,6 +1964,410 @@ final class _StoryLabel extends StatelessWidget {
   );
 }
 
+enum _AppLockAction { enable, change, disable }
+
+final class AppLockSettingsScreen extends StatelessWidget {
+  const AppLockSettingsScreen({super.key, required this.controller});
+
+  final HarborController controller;
+
+  Future<void> _openAction(BuildContext context, _AppLockAction action) async {
+    final message = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(
+        builder: (_) =>
+            _AppLockPassphraseScreen(controller: controller, action: action),
+      ),
+    );
+    if (message == null || !context.mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: controller,
+    builder: (context, _) => Scaffold(
+      appBar: AppBar(
+        title: const Text('Local app lock'),
+        actions: [
+          IconButton(
+            tooltip: 'Urgent support',
+            color: HarborColors.clay,
+            onPressed: () => showEmergencySupport(context),
+            icon: const Icon(Icons.emergency_outlined),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 48),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _InfoPanel(
+                    icon: controller.appLockEnabled
+                        ? Icons.lock_outlined
+                        : Icons.lock_open_outlined,
+                    title: controller.appLockEnabled
+                        ? 'App lock is on'
+                        : 'App lock is off',
+                    body: controller.appLockEnabled
+                        ? kIsWeb
+                              ? 'Harbor requires your local passphrase after you lock it, reload it, or the browser reports the page hidden or unfocused. Some embedded browsers may not report every switch, so use Lock Harbor now before sharing your device. The vault key is stored only in wrapped form while locked.'
+                              : 'Harbor requires your local passphrase after the app is hidden, backgrounded, or manually locked. The vault key is stored only in wrapped form while locked.'
+                        : 'Harbor opens its local vault when this browser profile or app starts. Turning on app lock adds a separate passphrase before Harbor can decrypt your entries.',
+                    tone: controller.appLockEnabled
+                        ? HarborColors.mist
+                        : HarborColors.blush,
+                  ),
+                  const SizedBox(height: 14),
+                  _InfoPanel(
+                    icon: Icons.key_outlined,
+                    title: 'Local protection, with honest limits',
+                    body: kIsWeb
+                        ? 'The passphrase never leaves this device and is not stored as readable text. Harbor cannot recover it. Reload and Lock Harbor now are guaranteed lock boundaries in this release. Automatic locking depends on the browser reporting visibility or focus loss. This cannot protect an already unlocked device from malware, browser extensions, screen capture, or a browser that withholds those events.'
+                        : 'The passphrase never leaves this device and is not stored as readable text. Harbor cannot recover it. This protects a closed or backgrounded Harbor, but cannot protect an already unlocked device from malware, screen capture, or someone using Harbor before it locks.',
+                  ),
+                  const SizedBox(height: 14),
+                  _InfoPanel(
+                    icon: kIsWeb
+                        ? Icons.language_outlined
+                        : Icons.phonelink_lock_outlined,
+                    title: kIsWeb
+                        ? 'Web passphrase fallback'
+                        : 'Device credential still pending verification',
+                    body: kIsWeb
+                        ? 'Browsers do not give Harbor the same hardware-backed key custody as an installed app. This release uses a passphrase-derived wrapping key; clearing browser data still erases the encrypted vault and lock record.'
+                        : 'This shared passphrase path works without an account. Biometric or operating-system credential integration remains a separate signed-device release gate.',
+                  ),
+                  const SizedBox(height: 24),
+                  if (!controller.appLockEnabled)
+                    FilledButton.icon(
+                      key: const ValueKey('enable_app_lock'),
+                      onPressed: controller.saving
+                          ? null
+                          : () => _openAction(context, _AppLockAction.enable),
+                      icon: const Icon(Icons.add_moderator_outlined),
+                      label: const Text('Turn on app lock'),
+                    )
+                  else ...[
+                    FilledButton.icon(
+                      key: const ValueKey('lock_harbor_now'),
+                      onPressed: controller.saving ? null : controller.lockNow,
+                      icon: const Icon(Icons.lock_outline),
+                      label: const Text('Lock Harbor now'),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      key: const ValueKey('change_app_lock'),
+                      onPressed: controller.saving
+                          ? null
+                          : () => _openAction(context, _AppLockAction.change),
+                      icon: const Icon(Icons.password_outlined),
+                      label: const Text('Change passphrase'),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      key: const ValueKey('disable_app_lock'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: HarborColors.clay,
+                      ),
+                      onPressed: controller.saving
+                          ? null
+                          : () => _openAction(context, _AppLockAction.disable),
+                      icon: const Icon(Icons.lock_open_outlined),
+                      label: const Text('Turn off app lock'),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  OutlinedButton.icon(
+                    onPressed: () => showEmergencySupport(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: HarborColors.clay,
+                    ),
+                    icon: const Icon(Icons.emergency_outlined),
+                    label: const Text('Open urgent support options'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+final class _AppLockPassphraseScreen extends StatefulWidget {
+  const _AppLockPassphraseScreen({
+    required this.controller,
+    required this.action,
+  });
+
+  final HarborController controller;
+  final _AppLockAction action;
+
+  @override
+  State<_AppLockPassphraseScreen> createState() =>
+      _AppLockPassphraseScreenState();
+}
+
+final class _AppLockPassphraseScreenState
+    extends State<_AppLockPassphraseScreen> {
+  final current = TextEditingController();
+  final next = TextEditingController();
+  final confirmation = TextEditingController();
+  bool obscure = true;
+  bool understandsRecovery = false;
+  bool busy = false;
+  String? message;
+
+  bool get needsCurrent => widget.action != _AppLockAction.enable;
+  bool get needsNew => widget.action != _AppLockAction.disable;
+
+  String get title => switch (widget.action) {
+    _AppLockAction.enable => 'Turn on app lock',
+    _AppLockAction.change => 'Change passphrase',
+    _AppLockAction.disable => 'Turn off app lock',
+  };
+
+  @override
+  void dispose() {
+    current.dispose();
+    next.dispose();
+    confirmation.dispose();
+    super.dispose();
+  }
+
+  Future<void> submit() async {
+    FocusScope.of(context).unfocus();
+    setState(() => message = null);
+    if (needsNew) {
+      if (next.text != confirmation.text) {
+        setState(() => message = 'The two new passphrases do not match.');
+        return;
+      }
+      try {
+        HarborAppLockCodec.validateNewPassphrase(next.text);
+      } on HarborAppLockPassphrasePolicyException catch (error) {
+        setState(() => message = error.reason);
+        return;
+      }
+      if (!understandsRecovery) {
+        setState(
+          () => message = 'Confirm that Harbor cannot recover this passphrase.',
+        );
+        return;
+      }
+    }
+    setState(() => busy = true);
+    try {
+      switch (widget.action) {
+        case _AppLockAction.enable:
+          await widget.controller.enableAppLock(next.text);
+        case _AppLockAction.change:
+          await widget.controller.changeAppLockPassphrase(
+            currentPassphrase: current.text,
+            newPassphrase: next.text,
+          );
+        case _AppLockAction.disable:
+          await widget.controller.disableAppLock(current.text);
+      }
+      if (!mounted) return;
+      final result = switch (widget.action) {
+        _AppLockAction.enable =>
+          kIsWeb
+              ? 'App lock is on. Lock Harbor now and reload are guaranteed; automatic locking depends on browser visibility and focus reports.'
+              : 'App lock is on. Harbor will lock when hidden or backgrounded.',
+        _AppLockAction.change => 'Your Harbor passphrase was changed.',
+        _AppLockAction.disable => 'App lock is off.',
+      };
+      Navigator.pop(context, result);
+    } on HarborAppLockPassphraseException {
+      if (!mounted) return;
+      setState(
+        () => message =
+            'The current passphrase did not match. No setting was changed.',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(
+        () => message = 'Harbor could not safely change the app lock. Your encrypted entries were not erased or replaced.',
+      );
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 48),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _InfoPanel(
+                    icon: needsNew
+                        ? Icons.password_outlined
+                        : Icons.lock_open_outlined,
+                    title: title,
+                    body: switch (widget.action) {
+                      _AppLockAction.enable => 'Choose a memorable phrase of at least 12 characters. Spaces and capitalization count. Harbor uses it to wrap the existing vault key; your entries are not re-created or uploaded.',
+                      _AppLockAction.change => 'Enter the current phrase, then choose a new phrase. Harbor verifies the replacement before removing the old wrapped-key record.',
+                      _AppLockAction.disable => 'Enter the current phrase to remove the extra lock. Your encrypted vault remains local, but Harbor will again open it automatically in this browser profile or app.',
+                    },
+                    tone: widget.action == _AppLockAction.disable
+                        ? HarborColors.blush
+                        : HarborColors.mist,
+                  ),
+                  const SizedBox(height: 20),
+                  if (needsCurrent) ...[
+                    TextField(
+                      key: const ValueKey('current_app_lock_passphrase'),
+                      controller: current,
+                      obscureText: obscure,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      autofillHints: const [AutofillHints.password],
+                      textInputAction: needsNew
+                          ? TextInputAction.next
+                          : TextInputAction.done,
+                      onSubmitted: (_) {
+                        if (!needsNew && !busy) submit();
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Current passphrase',
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                  if (needsNew) ...[
+                    TextField(
+                      key: const ValueKey('new_app_lock_passphrase'),
+                      controller: next,
+                      obscureText: obscure,
+                      maxLength: HarborAppLockCodec.maximumPassphraseCharacters,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      autofillHints: const [AutofillHints.newPassword],
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'New passphrase',
+                        helperText:
+                            'At least 12 characters; no composition rule',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      key: const ValueKey('confirm_app_lock_passphrase'),
+                      controller: confirmation,
+                      obscureText: obscure,
+                      maxLength: HarborAppLockCodec.maximumPassphraseCharacters,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      autofillHints: const [AutofillHints.newPassword],
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) {
+                        if (!busy) submit();
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm new passphrase',
+                      ),
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: understandsRecovery,
+                      onChanged: busy
+                          ? null
+                          : (value) => setState(
+                              () => understandsRecovery = value ?? false,
+                            ),
+                      title: const Text(
+                        'I understand Harbor cannot recover this passphrase or restore erased browser/app data.',
+                      ),
+                    ),
+                  ],
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: busy
+                          ? null
+                          : () => setState(() => obscure = !obscure),
+                      icon: Icon(
+                        obscure
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                      label: Text(
+                        obscure ? 'Show passphrases' : 'Hide passphrases',
+                      ),
+                    ),
+                  ),
+                  if (message != null) ...[
+                    const SizedBox(height: 8),
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        message!,
+                        key: const ValueKey('app_lock_settings_message'),
+                        style: const TextStyle(color: HarborColors.clay),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  FilledButton.icon(
+                    key: const ValueKey('save_app_lock_settings'),
+                    style: widget.action == _AppLockAction.disable
+                        ? FilledButton.styleFrom(
+                            backgroundColor: HarborColors.clay,
+                          )
+                        : null,
+                    onPressed: busy ? null : submit,
+                    icon: busy
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            widget.action == _AppLockAction.disable
+                                ? Icons.lock_open_outlined
+                                : Icons.check,
+                          ),
+                    label: Text(
+                      busy
+                          ? 'Verifying…'
+                          : switch (widget.action) {
+                              _AppLockAction.enable => 'Turn on app lock',
+                              _AppLockAction.change => 'Change passphrase',
+                              _AppLockAction.disable => 'Turn off app lock',
+                            },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: busy ? null : () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 final class PrivacyScreen extends StatelessWidget {
   const PrivacyScreen({super.key, required this.controller});
 
@@ -1746,6 +2398,33 @@ final class PrivacyScreen extends StatelessWidget {
           tone: HarborColors.blush,
         ),
       ],
+      const SizedBox(height: 24),
+      Text('Local app lock', style: Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height: 8),
+      Text(
+        controller.appLockEnabled
+            ? kIsWeb
+                  ? 'App lock is on. Harbor requires your passphrase after manual lock or reload, and when the browser reports the page hidden or unfocused.'
+                  : 'App lock is on. Harbor requires your passphrase after it is hidden, backgrounded, or manually locked.'
+            : kIsWeb
+            ? 'App lock is off. Add a local passphrase to protect Harbor after manual lock, reload, or reported visibility and focus loss.'
+            : 'App lock is off. Add a local passphrase before Harbor can decrypt entries after it is hidden or backgrounded.',
+      ),
+      const SizedBox(height: 14),
+      OutlinedButton.icon(
+        key: const ValueKey('manage_app_lock'),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => AppLockSettingsScreen(controller: controller),
+          ),
+        ),
+        icon: Icon(
+          controller.appLockEnabled
+              ? Icons.lock_outlined
+              : Icons.lock_open_outlined,
+        ),
+        label: const Text('Manage local app lock'),
+      ),
       const SizedBox(height: 24),
       Text(
         'About this Harbor build',
