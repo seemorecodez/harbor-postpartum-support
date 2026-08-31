@@ -1375,7 +1375,7 @@ final class _LibraryScreenState extends State<LibraryScreen> {
         const _InfoPanel(
           icon: Icons.fact_check_outlined,
           title: 'Source-traceable clinical draft',
-          body: 'These entries conservatively paraphrase authoritative ACOG and American Academy of Pediatrics sources. Public release still requires named independent clinical approval and expiry review.',
+          body: 'These entries conservatively paraphrase authoritative ACOG, National Institute of Mental Health, and American Academy of Pediatrics sources. Public release still requires named independent clinical approval and expiry review.',
           tone: HarborColors.mist,
         ),
         const SizedBox(height: 18),

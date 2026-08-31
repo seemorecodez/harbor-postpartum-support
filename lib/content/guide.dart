@@ -2,7 +2,19 @@ enum GuideAudience { woman, baby }
 
 enum GuideUrgency { learn, contactClinician, emergency }
 
-const guideCatalogVersion = '2026.08.30-source-draft.1';
+enum GuideSafetyScenario {
+  postpartumHemorrhage,
+  postpartumPreeclampsia,
+  postpartumInfection,
+  postpartumPsychosis,
+  suicidality,
+  newbornFever,
+  newbornBreathingDifficulty,
+  newbornPoorFeeding,
+  newbornJaundice,
+}
+
+const guideCatalogVersion = '2026.08.31-source-draft.2';
 const guideReviewStatus =
     'Clinical and women-led lived-experience approval pending';
 
@@ -18,6 +30,7 @@ final class GuideEntry {
     required this.sourceId,
     required this.sourceLabel,
     required this.sourceReviewed,
+    this.safetyScenarios = const <GuideSafetyScenario>{},
   });
 
   final String id;
@@ -30,6 +43,7 @@ final class GuideEntry {
   final String sourceId;
   final String sourceLabel;
   final String sourceReviewed;
+  final Set<GuideSafetyScenario> safetyScenarios;
 
   bool matches(String query) {
     final value = query.trim().toLowerCase();
@@ -62,6 +76,7 @@ const guideEntries = <GuideEntry>[
     sourceId: 'ACOG-PP-HEMORRHAGE-2022',
     sourceLabel: 'ACOG, Conditions to Watch After Childbirth',
     sourceReviewed: 'Accessed 2026-08-30',
+    safetyScenarios: {GuideSafetyScenario.postpartumHemorrhage},
   ),
   GuideEntry(
     id: 'woman-headache-vision',
@@ -74,6 +89,33 @@ const guideEntries = <GuideEntry>[
     sourceId: 'ACOG-PP-PREECLAMPSIA-2022',
     sourceLabel: 'ACOG, Conditions to Watch After Childbirth',
     sourceReviewed: 'Accessed 2026-08-30',
+    safetyScenarios: {GuideSafetyScenario.postpartumPreeclampsia},
+  ),
+  GuideEntry(
+    id: 'woman-postpartum-infection',
+    audience: GuideAudience.woman,
+    stages: {'0-6 weeks', '7-12 weeks'},
+    urgency: GuideUrgency.contactClinician,
+    title: 'Fever, chills, belly tenderness, or bad-smelling discharge',
+    summary: 'A fever of 100.4 F (38 C) or higher, chills, worsening lower-belly pain or tenderness, or vaginal discharge that smells bad can be a sign of a serious infection after birth.',
+    action: 'Get medical care right away and tell them you gave birth within the last year. Call your obstetric clinician now; if you cannot reach them, go to an emergency department.',
+    sourceId: 'ACOG-PP-ENDOMETRITIS-2026',
+    sourceLabel: 'ACOG, 3 Conditions to Watch for After Childbirth',
+    sourceReviewed: 'Accessed 2026-08-31',
+    safetyScenarios: {GuideSafetyScenario.postpartumInfection},
+  ),
+  GuideEntry(
+    id: 'woman-postpartum-psychosis',
+    audience: GuideAudience.woman,
+    stages: {'0-6 weeks', '7-12 weeks', '3-6 months', '7-12 months'},
+    urgency: GuideUrgency.emergency,
+    title: 'Hallucinations, delusions, mania, paranoia, or confusion',
+    summary: 'Seeing, hearing, or smelling things that are not there; beliefs that are not true; an unusually high or elated mood that seems out of touch with reality; paranoia; or confusion after birth can be symptoms of postpartum psychosis.',
+    action: 'Postpartum psychosis is a psychiatric emergency. Call emergency services now—in the U.S., call 911—or go to the nearest emergency room. Harbor cannot assess or monitor these symptoms.',
+    sourceId: 'NIMH-PERINATAL-DEPRESSION-2026',
+    sourceLabel: 'National Institute of Mental Health, Perinatal Depression',
+    sourceReviewed: 'Accessed 2026-08-31',
+    safetyScenarios: {GuideSafetyScenario.postpartumPsychosis},
   ),
   GuideEntry(
     id: 'woman-emergency',
@@ -86,6 +128,7 @@ const guideEntries = <GuideEntry>[
     sourceId: 'ACOG-PP-PAIN-2025',
     sourceLabel: 'ACOG, Postpartum Pain Management',
     sourceReviewed: 'Accessed 2026-08-30',
+    safetyScenarios: {GuideSafetyScenario.suicidality},
   ),
   GuideEntry(
     id: 'woman-baby-blues',
@@ -122,6 +165,7 @@ const guideEntries = <GuideEntry>[
     sourceId: 'AAP-NEWBORN-ILLNESS',
     sourceLabel: 'American Academy of Pediatrics, Newborn Illness',
     sourceReviewed: 'Accessed 2026-08-30',
+    safetyScenarios: {GuideSafetyScenario.newbornPoorFeeding},
   ),
   GuideEntry(
     id: 'baby-fever',
@@ -134,6 +178,7 @@ const guideEntries = <GuideEntry>[
     sourceId: 'AAP-INFANT-FEVER-2025',
     sourceLabel: 'American Academy of Pediatrics, Fever and Your Baby',
     sourceReviewed: 'Accessed 2026-08-30',
+    safetyScenarios: {GuideSafetyScenario.newbornFever},
   ),
   GuideEntry(
     id: 'baby-breathing',
@@ -146,6 +191,7 @@ const guideEntries = <GuideEntry>[
     sourceId: 'AAP-NEWBORN-ILLNESS',
     sourceLabel: 'American Academy of Pediatrics, Newborn Illness',
     sourceReviewed: 'Accessed 2026-08-30',
+    safetyScenarios: {GuideSafetyScenario.newbornBreathingDifficulty},
   ),
   GuideEntry(
     id: 'baby-jaundice',
@@ -158,5 +204,6 @@ const guideEntries = <GuideEntry>[
     sourceId: 'AAP-JAUNDICE-2024',
     sourceLabel: 'American Academy of Pediatrics, Jaundice in Newborns',
     sourceReviewed: 'Updated by source August 2024',
+    safetyScenarios: {GuideSafetyScenario.newbornJaundice},
   ),
 ];

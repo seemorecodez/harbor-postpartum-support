@@ -2,9 +2,9 @@
 
 **Version:** 0.1 draft
 
-**Catalog version:** `2026.08.30-source-draft.1`
+**Catalog version:** `2026.08.31-source-draft.2`
 
-**Updated:** 2026-08-30
+**Updated:** 2026-08-31
 **Release status:** Not approved for clinical release
 
 This registry controls every health-information entry shipped in Harbor. Content may be implemented and tested before release, but it cannot pass the clinical-content release gate until a qualified postpartum clinician and a pediatric clinician have reviewed the applicable entries, requested corrections are resolved, and the approval fields below are signed and dated.
@@ -18,7 +18,9 @@ Harbor is educational support, not diagnosis, triage, monitoring, or a substitut
 | ACOG-PP-PAIN-2025 | [ACOG — Postpartum Pain Management](https://www.acog.org/womens-health/faqs/postpartum-pain-management) | Common postpartum recovery experiences and emergency warning signs | Accessed 2026-08-30 | Before clinical release and every 6 months |
 | ACOG-PP-HEMORRHAGE-2022 | [ACOG — Conditions to Watch for After Childbirth](https://www.acog.org/womens-health/infographics/conditions-to-watch-for-after-childbirth) | Heavy bleeding and urgent postpartum warning signs | Accessed 2026-08-30 | Before clinical release and every 6 months |
 | ACOG-PP-PREECLAMPSIA-2022 | [ACOG — Conditions to Watch for After Childbirth](https://www.acog.org/womens-health/infographics/conditions-to-watch-for-after-childbirth) | Severe headache, visual symptoms, swelling, and abdominal pain | Accessed 2026-08-30 | Before clinical release and every 6 months |
+| ACOG-PP-ENDOMETRITIS-2026 | [ACOG — 3 Conditions to Watch for After Childbirth](https://www.acog.org/womens-health/experts-and-stories/the-latest/3-conditions-to-watch-for-after-childbirth) | Fever, chills, abdominal tenderness, and foul-smelling discharge requiring prompt postpartum care | Accessed 2026-08-31 | Before clinical release and every 6 months |
 | ACOG-PPD-2025 | [ACOG — Postpartum Depression](https://www.acog.org/womens-health/faqs/postpartum-depression) | Baby blues, postpartum depression, first-year timing, when to contact a professional | Source says reviewed December 2025; accessed 2026-08-30 | Before clinical release and every 6 months |
+| NIMH-PERINATAL-DEPRESSION-2026 | [National Institute of Mental Health — Perinatal Depression](https://www.nimh.nih.gov/health/publications/perinatal-depression) | Postpartum psychosis symptoms and immediate 911/emergency-room handoff | Accessed 2026-08-31 | Before clinical release and every 6 months |
 | AAP-NEWBORN-ILLNESS | [American Academy of Pediatrics — Newborn Illness: How Can I Find Out?](https://www.healthychildren.org/English/ages-stages/baby/Pages/Newborn-Illness-How-Can-I-Find-Out.aspx) | Feeding change, unusual behavior, breathing difficulty, color change, weakness, and wakefulness | Accessed 2026-08-30 | Before clinical release and every 6 months |
 | AAP-INFANT-FEVER-2025 | [American Academy of Pediatrics — Fever and Your Baby](https://www.healthychildren.org/English/health-issues/conditions/fever/Pages/Fever-and-Your-Baby.aspx) | Temperature threshold and immediate evaluation for babies younger than three months | Accessed 2026-08-30 | Before clinical release and every 6 months |
 | AAP-JAUNDICE-2024 | [American Academy of Pediatrics — Jaundice in Newborns](https://www.healthychildren.org/English/ages-stages/baby/Pages/Jaundice.aspx) | Jaundice warning signs, clinician contact, and sunlight warning | Source says updated August 2024; accessed 2026-08-30 | Before clinical release and every 6 months |
@@ -31,6 +33,8 @@ Harbor is educational support, not diagnosis, triage, monitoring, or a substitut
 | woman-recovery-early | Woman | Learn / ask freely | ACOG-PP-PAIN-2025 | Pending |
 | woman-heavy-bleeding | Woman | Contact clinician now | ACOG-PP-HEMORRHAGE-2022 | Pending |
 | woman-headache-vision | Woman | Contact clinician now | ACOG-PP-PREECLAMPSIA-2022 | Pending |
+| woman-postpartum-infection | Woman | Get medical care right away | ACOG-PP-ENDOMETRITIS-2026 | Pending |
+| woman-postpartum-psychosis | Woman | Emergency | NIMH-PERINATAL-DEPRESSION-2026 | Pending |
 | woman-emergency | Woman | Emergency | ACOG-PP-PAIN-2025 | Pending |
 | woman-baby-blues | Woman | Learn / contact if concerned | ACOG-PPD-2025 | Pending |
 | woman-mood-anytime | Woman | Contact clinician | ACOG-PPD-2025 | Pending |

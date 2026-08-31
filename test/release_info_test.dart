@@ -43,7 +43,7 @@ void main() {
     expect(HarborReleaseInfo.storiesCatalog, storyCatalogVersion);
     expect(HarborReleaseInfo.guideLabel, contains('${guideEntries.length}'));
     expect(HarborReleaseInfo.storiesLabel, contains('${storyEntries.length}'));
-    expect(guideEntries.map((entry) => entry.id).toSet(), hasLength(10));
+    expect(guideEntries.map((entry) => entry.id).toSet(), hasLength(12));
     expect(storyEntries.map((entry) => entry.id).toSet(), hasLength(6));
     expect(HarborReleaseInfo.guideStatus, contains('approval pending'));
     expect(HarborReleaseInfo.storiesStatus, contains('Awaiting'));

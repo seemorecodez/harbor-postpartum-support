@@ -4,7 +4,7 @@
 |---|---|---:|---:|---|---|---|
 | R-001 | Current local content storage is not independently encrypted | High | Critical | Open | Do not promote prototype; prove SQLCipher/equivalent and separate secure key storage | Security owner missing |
 | R-002 | “Is this normal?” is interpreted as diagnosis or delays care | Medium | Critical | Open | Claims review, wording research, independent clinical scenarios, persistent call boundary | Clinical/legal owners missing |
-| R-003 | Incorrect/expired obstetric, pediatric, mental-health, or crisis content | Medium | Critical | Open | Content registry, two-person urgent review, expiry and pre-release verification | Clinical owner missing |
+| R-003 | Incorrect/expired obstetric, pediatric, mental-health, or crisis content | Medium | Critical | Mitigated for automated source/scenario coverage in alpha.19; open for release | Twelve source-backed drafts, a typed nine-scenario matrix, registry synchronization, urgent-language rules, and real infection/psychosis UI routes pass; two-person clinical review, expiry automation, and pre-release source-to-screen verification remain | Clinical owner missing |
 | R-004 | Flutter cannot meet one platform’s security/accessibility requirement | Medium | High | Open | Architecture proof before production commitment; platform adapters and documented fallback | Technical owner missing |
 | R-005 | No Mac/Xcode/Apple account blocks iOS and macOS proof and release | High | Critical | Open | Acquire early; no valid Apple fallback exists | Product/release owner missing |
 | R-006 | No Android SDK/Windows build tools/device lab blocks real testing | High | High | Open | Install toolchains and obtain physical/device-lab access | Release owner missing |

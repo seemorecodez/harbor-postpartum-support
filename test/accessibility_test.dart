@@ -103,6 +103,37 @@ void main() {
     await expectCoreGuidelines(tester);
   });
 
+  testWidgets('psychosis emergency guidance reflows at 200% text', (
+    tester,
+  ) async {
+    useViewport(tester, const Size(390, 844), textScale: 2);
+    final controller = await readyController();
+    await tester.pumpWidget(HarborApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Library').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'hallucinations');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Hallucinations, delusions, mania, paranoia, or confusion'),
+      findsOneWidget,
+    );
+    final urgent = find.text('Open urgent support options');
+    await tester.ensureVisible(urgent);
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
+
+    await tester.tap(urgent);
+    await tester.pumpAndSettle();
+    expect(find.text('Call 911'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
+  });
+
   testWidgets('protected-data recovery is accessible at 200% text', (
     tester,
   ) async {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harbor_app/content/guide.dart';
 
@@ -55,6 +57,112 @@ void main() {
               action.contains('seek immediate medical care'),
           isTrue,
           reason: '${entry.id} lacks an immediate emergency handoff',
+        );
+      }
+    });
+
+    test('every release-mandated safety scenario has one controlled entry', () {
+      const expected =
+          <
+            GuideSafetyScenario,
+            ({String id, GuideAudience audience, GuideUrgency urgency})
+          >{
+            GuideSafetyScenario.postpartumHemorrhage: (
+              id: 'woman-heavy-bleeding',
+              audience: GuideAudience.woman,
+              urgency: GuideUrgency.contactClinician,
+            ),
+            GuideSafetyScenario.postpartumPreeclampsia: (
+              id: 'woman-headache-vision',
+              audience: GuideAudience.woman,
+              urgency: GuideUrgency.contactClinician,
+            ),
+            GuideSafetyScenario.postpartumInfection: (
+              id: 'woman-postpartum-infection',
+              audience: GuideAudience.woman,
+              urgency: GuideUrgency.contactClinician,
+            ),
+            GuideSafetyScenario.postpartumPsychosis: (
+              id: 'woman-postpartum-psychosis',
+              audience: GuideAudience.woman,
+              urgency: GuideUrgency.emergency,
+            ),
+            GuideSafetyScenario.suicidality: (
+              id: 'woman-emergency',
+              audience: GuideAudience.woman,
+              urgency: GuideUrgency.emergency,
+            ),
+            GuideSafetyScenario.newbornFever: (
+              id: 'baby-fever',
+              audience: GuideAudience.baby,
+              urgency: GuideUrgency.emergency,
+            ),
+            GuideSafetyScenario.newbornBreathingDifficulty: (
+              id: 'baby-breathing',
+              audience: GuideAudience.baby,
+              urgency: GuideUrgency.emergency,
+            ),
+            GuideSafetyScenario.newbornPoorFeeding: (
+              id: 'baby-feeding-change',
+              audience: GuideAudience.baby,
+              urgency: GuideUrgency.contactClinician,
+            ),
+            GuideSafetyScenario.newbornJaundice: (
+              id: 'baby-jaundice',
+              audience: GuideAudience.baby,
+              urgency: GuideUrgency.contactClinician,
+            ),
+          };
+
+      expect(expected.keys.toSet(), GuideSafetyScenario.values.toSet());
+      for (final scenario in GuideSafetyScenario.values) {
+        final matches = guideEntries
+            .where((entry) => entry.safetyScenarios.contains(scenario))
+            .toList();
+        final target = expected[scenario]!;
+        expect(matches, hasLength(1), reason: scenario.name);
+        expect(matches.single.id, target.id);
+        expect(matches.single.audience, target.audience);
+        expect(matches.single.urgency, target.urgency);
+      }
+    });
+
+    test('urgent action copy cannot reassure a woman or tell her to wait', () {
+      const prohibitedActionPhrases = <String>[
+        'you are fine',
+        'nothing to worry about',
+        'wait and see',
+        'probably normal',
+        'just normal',
+      ];
+
+      for (final entry in guideEntries.where(
+        (entry) => entry.urgency != GuideUrgency.learn,
+      )) {
+        final action = entry.action.toLowerCase();
+        for (final phrase in prohibitedActionPhrases) {
+          expect(action, isNot(contains(phrase)), reason: entry.id);
+        }
+        expect(
+          action.contains('clinician') ||
+              action.contains('medical care') ||
+              action.contains('emergency') ||
+              action.contains('call 911'),
+          isTrue,
+          reason: '${entry.id} lacks a professional-care handoff',
+        );
+      }
+    });
+
+    test('every shipped source id is controlled by the clinical registry', () {
+      final registry = File('docs/governance/CLINICAL_CONTENT_REGISTRY.md')
+          .readAsStringSync();
+
+      for (final entry in guideEntries) {
+        expect(
+          registry,
+          contains('| ${entry.sourceId} |'),
+          reason: '${entry.id} has an unregistered source',
         );
       }
     });

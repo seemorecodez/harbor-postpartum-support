@@ -111,6 +111,14 @@
 - **Verification:** Alpha.18 has four allowlist/redaction tests, About and locked-recovery widget paths, cancel/copy clipboard assertions, 200%-text accessibility coverage, and a compiled Chromium preview/cancel run that showed the exact five fields while adding zero requests.
 - **Remaining gate:** Public-host and multi-browser checks, installed-target platform/clipboard forensics, assistive-technology testing, support-process review, and independent privacy/security assessment.
 
+### HBR-DEC-018 — Release safety scenarios are explicit catalog data
+
+- **Decision:** Every roadmap-mandated maternal or newborn safety scenario must map to exactly one controlled guide entry through `GuideSafetyScenario`; keyword coincidence is not accepted as coverage.
+- **Reason:** Free-text searches and broad emergency cards can appear to cover a condition while omitting its source, stage, severity, action, or UI route. Explicit tags make gaps and accidental duplication test failures.
+- **Safety boundary:** Scenario tags support coverage and testing only. They do not diagnose, score risk, infer a condition from user data, or replace independent clinical judgment. The entries remain visibly labeled clinical drafts.
+- **Verification:** Alpha.19 maps hemorrhage, preeclampsia, infection, psychosis, suicidality, newborn fever, breathing difficulty, poor feeding, and jaundice to 12 source-backed entries. Unit, registry, urgent-language, real-guide UI, 200%-text, release-identity, and compiled Chromium infection/psychosis/support-path checks pass.
+- **Remaining gate:** Named obstetric, pediatric, perinatal mental-health, crisis, and compensated women-led lived-experience review; source expiry; public-host and five-platform assistive-technology verification.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework

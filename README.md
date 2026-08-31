@@ -2,7 +2,7 @@
 
 [![Verify Harbor](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml/badge.svg)](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml)
 
-Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 18, not a clinically approved release or a claim that all five native applications are finished.
+Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 19, not a clinically approved release or a claim that all five native applications are finished.
 
 ## Implemented production slice
 
@@ -11,7 +11,7 @@ Harbor is a private, women-centered postpartum support application targeting web
 - Local check-ins, journal, clinician questions, hard-day plan, care-load tasks, and editable care-request drafts.
 - Deterministic factual reflections with no diagnosis, cause inference, risk score, streak, or remote AI.
 - Deliberate clipboard review for unanswered clinician questions and care requests.
-- Searchable bundled postpartum body, mood, and baby guide with stage, severity, source metadata, and urgent routing.
+- Searchable bundled postpartum body, mood, and baby guide with stage, severity, source metadata, urgent routing, and typed coverage for hemorrhage, preeclampsia, infection, psychosis, suicidality, newborn fever, breathing difficulty, poor feeding, and jaundice.
 - Versioned offline web shell and a startup surface removed by Flutter's real first-frame event, with explicit pointer and Enter/Space retry activation after fatal loading failure.
 - Full erase back to onboarding.
 - Versioned encrypted-data migration with verified staging/commit, explicit future/corrupt-data lockout, Retry, and separately confirmed erasure.
@@ -25,7 +25,7 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 ## Verified on this Windows host
 
 - Flutter 3.47.2 / Dart 3.13.2 static analysis: clean.
-- Fifty-seven automated tests: all pass, including schema-1/2-to-3 migration, encrypted story resonance, catalog and release-identity provenance, diagnostic allowlisting and error redaction, non-simulated-community rules, forced fresh runtime caching during release updates, legacy migration, interrupted-write recovery, future-version lockout, tamper rejection, missing-key protection, recovery-screen interactions, web privacy contracts, phone/desktop responsiveness, 200% text, labels, contrast, target sizes, and keyboard activation.
+- Sixty-three automated tests: all pass, including the nine-scenario clinical-safety matrix, clinical-registry synchronization, urgent-language rules, real-guide search and support routing, schema-1/2-to-3 migration, encrypted story resonance, catalog and release-identity provenance, diagnostic allowlisting and error redaction, non-simulated-community rules, forced fresh runtime caching during release updates, legacy migration, interrupted-write recovery, future-version lockout, tamper rejection, missing-key protection, recovery-screen interactions, web privacy contracts, phone/desktop responsiveness, 200% text, labels, contrast, target sizes, and keyboard activation.
 - Release WebAssembly web build: passes.
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
@@ -33,7 +33,8 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 - A production-style loopback traffic probe observed a compiled-browser synthetic journal save, reload, and confirmed deletion: save/delete added no requests, only same-origin asset GET/HEAD requests occurred, and the unique journal sentinel appeared in no request path, header, or body. This is narrow local evidence, not a public-host or signed-native privacy certification.
 - The compiled alpha.17 Privacy → About path exposes every metadata label/value to browser semantics, retains direct urgent-support access and back navigation, and completed a clean-origin run with only same-origin HTTP 200 asset traffic.
 - The compiled alpha.18 diagnostic path visibly displayed its exact five-field payload, cancelled without copying, added zero requests during preview/cancel, produced zero non-GET traffic or sentinel hits, and logged no browser warnings or errors.
-- [Public GitHub clean-checkout verification](https://github.com/seemorecodez/harbor-postpartum-support/actions/runs/33412177333) on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 57 tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions.
+- The exact compiled alpha.19 guide visibly exercised postpartum psychosis and infection searches, the corrected ACOG/NIMH/AAP draft boundary, NIMH source metadata, non-diagnostic emergency copy, and the 911/988 support dialog. Its fresh-origin pass used 24 same-origin GETs and a cached follow-up infection pass used 2; both had zero non-GETs, failed responses, sentinel hits, or browser warnings/errors.
+- [Public GitHub clean-checkout verification](https://github.com/seemorecodez/harbor-postpartum-support/actions/runs/33412177333) for alpha.18 on Ubuntu 24.04 repeats locked dependency resolution, formatting, static analysis, all 57 then-current tests, the release WebAssembly build, a post-build clean-tree check, and artifact preservation using immutable action revisions. Alpha.19 public CI is pending this commit.
 - The downloadable alpha.18 web ZIP matches all 49 files in that public CI artifact, and the source ZIP matches all 184 raw Git blobs at commit `26761f5`. A first Windows `git archive` candidate was rejected because text normalization changed 55 blobs; it is not distributed. Cross-OS binary reproducibility remains an explicit gap.
 
 These checks do not prove clinical approval, independent security/accessibility review, public deployment, native compilation, signing, installation, store acceptance, or physical-device behavior.
