@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.harborprivacy" "\0"
-            VALUE "FileDescription", "harbor_app" "\0"
+            VALUE "CompanyName", "SeemoreCodez" "\0"
+            VALUE "FileDescription", "Harbor" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "harbor_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.harborprivacy. All rights reserved." "\0"
-            VALUE "OriginalFilename", "harbor_app.exe" "\0"
-            VALUE "ProductName", "harbor_app" "\0"
+            VALUE "InternalName", "Harbor" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 SeemoreCodez. All rights reserved." "\0"
+            VALUE "OriginalFilename", "Harbor.exe" "\0"
+            VALUE "ProductName", "Harbor" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

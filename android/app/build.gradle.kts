@@ -6,7 +6,10 @@ plugins {
 
 android {
     namespace = "com.harborprivacy.harbor_app"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_secure_storage 11 requires API 37. Keep targetSdk governed by
+    // Flutter so compile-time compatibility does not silently opt Harbor into
+    // a new runtime behavior set.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

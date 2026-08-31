@@ -5,8 +5,8 @@ import 'models.dart';
 /// Public, non-personal metadata shown inside Harbor and checked against the
 /// packaged release files. Nothing in this object is read from the local vault.
 abstract final class HarborReleaseInfo {
-  static const version = '0.1.0-alpha.24';
-  static const buildNumber = 24;
+  static const version = '0.1.0-alpha.25';
+  static const buildNumber = 25;
   static const releaseStatus = 'Engineering alpha';
   static const dataSchemaVersion = HarborData.currentSchemaVersion;
   static const guideCatalog = guideCatalogVersion;

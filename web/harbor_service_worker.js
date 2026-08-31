@@ -3,7 +3,7 @@
 // Increment this exact cache name for every release. A stale Harbor cache must
 // never silently survive a clinical-content correction or privacy fix.
 const CACHE_PREFIX = "harbor-shell-";
-const CACHE_NAME = "harbor-shell-0.1.0-alpha.24";
+const CACHE_NAME = "harbor-shell-0.1.0-alpha.25";
 const STAGING_SUFFIX = "-installing";
 const STAGING_CACHE_NAME = `${CACHE_NAME}${STAGING_SUFFIX}`;
 

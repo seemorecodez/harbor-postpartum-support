@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   android:
-    name: Build unsigned Android release
+    name: Build Android engineering release
     runs-on: ubuntu-24.04
     timeout-minutes: 35
 
@@ -36,22 +36,39 @@ jobs:
       - name: Build unsigned release APK
         run: flutter build apk --release --no-pub
 
+      - name: Verify compiled Android privacy boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk='build/app/outputs/flutter-apk/app-release.apk'
+          test -f "$apk"
+          apkanalyzer="$(find "$ANDROID_HOME/cmdline-tools" -type f -name apkanalyzer -print | sort | tail -n 1)"
+          test -n "$apkanalyzer"
+          "$apkanalyzer" manifest print "$apk" > compiled-android-manifest.xml
+          grep -F 'android:label="Harbor"' compiled-android-manifest.xml
+          grep -F 'android:allowBackup="false"' compiled-android-manifest.xml
+          grep -F 'android:usesCleartextTraffic="false"' compiled-android-manifest.xml
+          if grep -Fq 'android.permission.INTERNET' compiled-android-manifest.xml; then
+            echo 'Release APK unexpectedly requests INTERNET.' >&2
+            exit 1
+          fi
+
       - name: Verify build did not change governed source
         shell: bash
         run: |
           git diff --exit-code
           test -z "$(git status --porcelain --untracked-files=all)"
 
-      - name: Preserve unsigned Android proof
+      - name: Preserve Android engineering proof
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: harbor-android-unsigned-${{ github.sha }}
+          name: harbor-android-engineering-proof-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 3
 
   windows:
-    name: Build unsigned Windows release
+    name: Build Windows engineering release
     runs-on: windows-2022
     timeout-minutes: 35
 
@@ -75,22 +92,37 @@ jobs:
       - name: Build unsigned Windows release
         run: flutter build windows --release --no-pub
 
+      - name: Verify compiled Windows product boundary
+        shell: pwsh
+        run: |
+          $executables = @(Get-ChildItem build/windows -Recurse -File -Filter Harbor.exe)
+          if ($executables.Count -ne 1) { throw "Expected one Harbor.exe; found $($executables.Count)." }
+          $assets = Join-Path $executables[0].DirectoryName 'data/flutter_assets'
+          if (-not (Test-Path -LiteralPath $assets -PathType Container)) { throw 'Flutter assets are missing.' }
+          $signature = Get-AuthenticodeSignature -LiteralPath $executables[0].FullName
+          if ($signature.Status -ne 'NotSigned') { throw "Expected an unsigned engineering binary; found $($signature.Status)." }
+
       - name: Verify build did not change governed source
         shell: pwsh
         run: |
           git diff --exit-code
-          if (git status --porcelain --untracked-files=all) { throw 'Build changed governed source.' }
+          $untracked = @(git ls-files --others --exclude-standard)
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inspect untracked files.' }
+          if ($untracked.Count -gt 0) {
+            $untracked | ForEach-Object { Write-Error "Unexpected untracked file: $_" }
+            throw 'Build created untracked governed source.'
+          }
 
-      - name: Preserve unsigned Windows proof
+      - name: Preserve Windows engineering proof
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: harbor-windows-unsigned-${{ github.sha }}
+          name: harbor-windows-engineering-proof-${{ github.sha }}
           path: build/windows/**/runner/Release
           if-no-files-found: error
           retention-days: 3
 
   apple:
-    name: Build unsigned macOS and iOS releases
+    name: Build Apple engineering releases
     runs-on: macos-15
     timeout-minutes: 45
 
@@ -117,16 +149,27 @@ jobs:
       - name: Build unsigned iOS release
         run: flutter build ios --release --no-codesign --no-pub
 
+      - name: Verify compiled Apple product names
+        shell: bash
+        run: |
+          set -euo pipefail
+          mac_app='build/macos/Build/Products/Release/Harbor.app'
+          ios_app='build/ios/iphoneos/Runner.app'
+          test -d "$mac_app"
+          test -d "$ios_app"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleName' "$mac_app/Contents/Info.plist")" = 'Harbor'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$ios_app/Info.plist")" = 'Harbor'
+
       - name: Verify builds did not change governed source
         shell: bash
         run: |
           git diff --exit-code
           test -z "$(git status --porcelain --untracked-files=all)"
 
-      - name: Preserve unsigned Apple proofs
+      - name: Preserve Apple engineering proofs
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: harbor-apple-unsigned-${{ github.sha }}
+          name: harbor-apple-engineering-proof-${{ github.sha }}
           path: |
             build/macos/Build/Products/Release/*.app
             build/ios/iphoneos/Runner.app
