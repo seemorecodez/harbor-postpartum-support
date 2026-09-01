@@ -51,6 +51,42 @@ void main() {
     expect(bootstrap, contains('window.location.reload()'));
   });
 
+  test('framed startup fails closed before Flutter can expose private UI', () {
+    expect(bootstrap, contains('window.self !== window.top'));
+    expect(bootstrap, contains('function showFramedBoundary()'));
+    expect(bootstrap, contains('harbor-startup--framed'));
+    expect(bootstrap, contains('startupShell.setAttribute("role", "alert")'));
+    expect(
+      bootstrap,
+      contains('startupShell.setAttribute("aria-live", "assertive")'),
+    );
+    expect(bootstrap, contains('"Open Harbor directly"'));
+    expect(
+      bootstrap,
+      contains(
+        'window.open(document.baseURI, "_blank", "noopener,noreferrer")',
+      ),
+    );
+    expect(
+      bootstrap,
+      contains(
+        'if (harborIsFramed) {\n'
+        '  showFramedBoundary();\n'
+        '} else {\n'
+        '  startHarbor();\n'
+        '}',
+      ),
+    );
+    expect(
+      index,
+      contains('#harbor-startup.harbor-startup--framed .harbor-startup__bar'),
+    );
+    expect(
+      index,
+      contains('#harbor-startup.harbor-startup--framed .harbor-startup__retry'),
+    );
+  });
+
   test('release identity is consistent across bootstrap and offline shell', () {
     final match = RegExp(
       r'^version: ([^+]+)\+\d+$',

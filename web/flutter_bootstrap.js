@@ -1,11 +1,12 @@
 {{flutter_js}}
 {{flutter_build_config}}
 
-const HARBOR_RELEASE = "0.1.0-alpha.26";
+const HARBOR_RELEASE = "0.1.0-alpha.27";
 
 const startupShell = document.getElementById("harbor-startup");
 const startupStatus = document.getElementById("harbor-startup-status");
 const startupRetry = document.getElementById("harbor-startup-retry");
+const harborIsFramed = window.self !== window.top;
 
 function setStartupStatus(message) {
   if (startupStatus) startupStatus.textContent = message;
@@ -15,6 +16,18 @@ function showStartupFailure() {
   if (startupShell) startupShell.classList.add("harbor-startup--failed");
   setStartupStatus(
     "Harbor could not open. Nothing you wrote was sent. Check your connection, then try again.",
+  );
+}
+
+function showFramedBoundary() {
+  if (startupShell) {
+    startupShell.classList.add("harbor-startup--framed");
+    startupShell.setAttribute("role", "alert");
+    startupShell.setAttribute("aria-live", "assertive");
+  }
+  if (startupRetry) startupRetry.textContent = "Open Harbor directly";
+  setStartupStatus(
+    "For your privacy, Harbor does not open inside another site. Open Harbor directly in its own tab.",
   );
 }
 
@@ -29,6 +42,10 @@ window.addEventListener(
 );
 
 function retryHarbor() {
+  if (harborIsFramed) {
+    window.open(document.baseURI, "_blank", "noopener,noreferrer");
+    return;
+  }
   window.location.reload();
 }
 
@@ -121,4 +138,8 @@ async function startHarbor() {
   }
 }
 
-startHarbor();
+if (harborIsFramed) {
+  showFramedBoundary();
+} else {
+  startHarbor();
+}

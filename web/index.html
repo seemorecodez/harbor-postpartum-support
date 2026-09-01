@@ -134,6 +134,12 @@
     #harbor-startup.harbor-startup--failed .harbor-startup__retry {
       display: block;
     }
+    #harbor-startup.harbor-startup--framed .harbor-startup__bar {
+      display: none;
+    }
+    #harbor-startup.harbor-startup--framed .harbor-startup__retry {
+      display: block;
+    }
     @keyframes harbor-loading {
       from { transform: translateX(-110%); }
       to { transform: translateX(235%); }
@@ -167,6 +173,6 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
-  <script src="flutter_bootstrap.js?v=0.1.0-alpha.26" async></script>
+  <script src="flutter_bootstrap.js?v=0.1.0-alpha.27" async></script>
 </body>
 </html>
