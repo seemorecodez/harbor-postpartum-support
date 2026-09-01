@@ -175,6 +175,13 @@
 - **Verification:** Public alpha.27 run `33554479209` passes at `cbde264`; live top-level rendering and the hostile-frame boundary pass after the prior alpha.26 worker promotes alpha.27. The first cached iframe navigation still exposed the completed alpha.26 UI before promotion, making convergence time a measured residual risk rather than an instant security-update claim.
 - **Remaining gate:** Repeat live-origin offline/update timing across supported browsers; document hosting retention limits; establish monitoring/rollback; and move any production claim to a host that can enforce `frame-ancestors`, nosniff, and the accepted response-header policy.
 
+### HBR-DEC-026 — Large-history evidence must exercise production vault, search, and widget paths
+
+- **Decision:** Harbor's 1,000-record/20-migration roadmap workload uses the production `HarborVault`, model codecs, migration logic, journal-search helper, navigation shell, and Journal widget. It may use deterministic synthetic content and in-memory storage adapters inside Flutter's test engine, but it may not replace production algorithms with benchmark-only copies. Journal results render through a lazy sliver list, while cached feature destinations rebuild from explicit controller notifications rather than every navigation change.
+- **Reason:** A fast standalone loop or domain-only search can conceal data loss, plaintext staging, eager construction of hundreds of cards, or stale UI after a save. The workload must validate exact persisted state and the real rendering behavior it is meant to improve.
+- **Verification:** The first standalone-Dart attempt failed because the production vault legitimately depends on Flutter platform libraries; the same workload was then run intact in Flutter's engine. Alpha.28 exactly reloads 1,000 encrypted records, verifies 20 schema-1 migration/restart cycles (20,000 record instances), rejects plaintext sentinel exposure and staging residue, measures 25 searches, and drives the production Journal widget. An initial screen-cache optimization failed the existing care-task UI regression and was corrected with controller-bound cached screens. The final 112-test suite and both governed workloads pass; local root and Pages WebAssembly artifacts finalize and verify.
+- **Remaining gate:** Repeat under release/profile instrumentation with plugin-backed storage on accepted physical baseline devices and supported browsers; measure cold launch, disk/quota/fault behavior, and signed-app navigation before changing G-09 or G-10 to pass.
+
 ## Decisions pending evidence
 
 ### HBR-DEC-007 — Production cross-platform framework

@@ -2,7 +2,7 @@
 
 [![Verify Harbor](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml/badge.svg)](https://github.com/seemorecodez/harbor-postpartum-support/actions/workflows/ci.yml)
 
-Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current version is engineering alpha 27, not a clinically approved release or a claim that all five native applications are finished.
+Harbor is a private, women-centered postpartum support application targeting web/PWA, Android, iOS, Windows, and macOS from shared Flutter source. The current source version is engineering alpha 28; the public site remains alpha 27 until the alpha.28 clean-checkout gate and deployment pass. Neither is a clinically approved release or a claim that all five native applications are finished.
 
 The public engineering-alpha web app is available at [seemorecodez.github.io/harbor-postpartum-support](https://seemorecodez.github.io/harbor-postpartum-support/). Its host can observe ordinary request metadata; Harbor sends no journal, check-in, question, care-plan, or story-response content to an application server.
 
@@ -12,6 +12,7 @@ The public engineering-alpha web app is available at [seemorecodez.github.io/har
 - AES-256-GCM local vault with a separately stored secure key adapter.
 - Optional local app lock with a passphrase-wrapped vault key, fail-closed unlock, attempt throttling, manual/reload lock boundaries, lifecycle hooks, and a separately confirmed no-recovery erase path. Web automatic locking depends on the browser reporting visibility or focus loss; native device credentials remain a release gate.
 - Local check-ins, journal, clinician questions, hard-day plan, care-load tasks, and editable care-request drafts.
+- Case-insensitive local journal search with lazy entry rendering and persistent, controller-bound destination screens so large private histories do not require every card or feature screen to rebuild at once.
 - Deterministic factual reflections with no diagnosis, cause inference, risk score, streak, or remote AI.
 - A single typed clipboard boundary for exact-preview, deliberate copies of unanswered clinician questions, care requests, or bounded diagnostics; Harbor has no application log sink or crash-reporting SDK.
 - Searchable bundled postpartum body, mood, and baby guide with stage, severity, source metadata, urgent routing, and typed coverage for hemorrhage, preeclampsia, infection, psychosis, suicidality, newborn fever, breathing difficulty, poor feeding, and jaundice.
@@ -28,8 +29,10 @@ There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud 
 ## Verified on this Windows host
 
 - Flutter 3.47.2 / Dart 3.13.2 static analysis: clean.
-- One hundred nine automated tests: all pass, including passphrase-wrapped key metadata/tamper/future-version rejection, wrong-passphrase and throttling behavior, enable/change/disable/erase flows, lock-during-save recovery, app-lock UI and 200% text, the nine-scenario clinical-safety matrix, schema migration, encrypted story resonance, bounded diagnostics, single-sink clipboard/logging contracts, staged web-release integrity and corruption rejection, native product/privacy/build contracts, the least-privilege public-deployment and fail-closed framing contracts, web privacy contracts, recovery interactions, phone/desktop responsiveness, platform high contrast and reduced motion, four governed real-UI golden comparisons, labels, contrast, target sizes, and keyboard activation.
+- One hundred twelve automated tests: all pass, including passphrase-wrapped key metadata/tamper/future-version rejection, wrong-passphrase and throttling behavior, enable/change/disable/erase flows, lock-during-save recovery, app-lock UI and 200% text, the nine-scenario clinical-safety matrix, schema migration, encrypted story resonance, journal-search correctness and workload contracts, bounded diagnostics, single-sink clipboard/logging contracts, staged web-release integrity and corruption rejection, native product/privacy/build contracts, the least-privilege public-deployment and fail-closed framing contracts, web privacy contracts, recovery interactions, phone/desktop responsiveness, platform high contrast and reduced motion, four governed real-UI golden comparisons, labels, contrast, target sizes, and keyboard activation.
 - Release WebAssembly web build: passes.
+- The governed alpha.28 data workload saves and reloads 1,000 records through the production AES-256-GCM vault, verifies 20 independent schema-1 migration/restart cycles (20,000 migrated record instances), checks that staging is removed and synthetic plaintext is absent from stored envelopes, and runs 25 production journal searches. The final Windows run measured 248.651 ms save, 56.682 ms reload, 151.074 ms worst migration, and 2.439 ms worst search. This uses in-memory storage adapters inside Flutter's test engine; it is not device launch, plugin-storage, or signed-app evidence.
+- The governed alpha.28 widget workload drives the production Flutter shell and Journal screen with 500 check-ins plus 500 journal entries. Lazy rendering leaves fewer than 50 cards built before filtering and one card after the exact search. The final Windows run measured a 103.843 ms destination-render frame against the 150 ms target and a 56.706 ms worst search-render frame across 25 iterations against the 300 ms target. Widget-test timing is not a cold-launch or baseline-device report.
 - Clean-origin, warm-reload, server-stopped offline startup, and alpha.13-to-alpha.14 encrypted migration: visually exercised in a real browser.
 - Alpha.15 browser accessibility inspection exercised onboarding and signed-in desktop/phone layouts, keyboard activation, the semantic tree, the full phone menu, and the dense care-plan screen with no runtime console errors.
 - A real alpha.15-to-alpha.16 browser upgrade preserved an encrypted schema-2 journal, migrated to schema 3, loaded the seven-destination app on the first corrected update, saved encrypted story resonance, survived restart, and reloaded with the server stopped. The first attempt exposed and led to a fix for stale unversioned runtime reuse during service-worker cache installation.
@@ -61,6 +64,8 @@ These checks do not prove clinical approval, independent security/accessibility 
 flutter pub get
 flutter analyze
 flutter test
+flutter test tool/performance_probe_test.dart
+flutter test tool/performance_ui_probe_test.dart
 flutter build web --release --wasm
 dart run tool/finalize_web_release.dart build/web
 dart run tool/finalize_web_release.dart --verify build/web

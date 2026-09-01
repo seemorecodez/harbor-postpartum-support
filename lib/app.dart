@@ -9,6 +9,7 @@ import 'core/app_lock.dart';
 import 'core/app_visibility.dart';
 import 'core/controller.dart';
 import 'core/diagnostics.dart';
+import 'core/journal_search.dart';
 import 'core/models.dart';
 import 'core/reflections.dart';
 import 'core/release_info.dart';
@@ -698,6 +699,7 @@ final class HarborShell extends StatefulWidget {
 
 final class _HarborShellState extends State<HarborShell> {
   int selected = 0;
+  late final List<Widget> screens;
 
   static const destinations = [
     NavigationDestination(
@@ -738,16 +740,43 @@ final class _HarborShellState extends State<HarborShell> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final screens = [
-      TodayScreen(controller: widget.controller),
-      JournalScreen(controller: widget.controller),
-      QuestionsScreen(controller: widget.controller),
-      PlanScreen(controller: widget.controller),
+  void initState() {
+    super.initState();
+    screens = [
+      ListenableBuilder(
+        listenable: widget.controller,
+        builder: (context, child) => TodayScreen(controller: widget.controller),
+      ),
+      ListenableBuilder(
+        listenable: widget.controller,
+        builder: (context, child) =>
+            JournalScreen(controller: widget.controller),
+      ),
+      ListenableBuilder(
+        listenable: widget.controller,
+        builder: (context, child) =>
+            QuestionsScreen(controller: widget.controller),
+      ),
+      ListenableBuilder(
+        listenable: widget.controller,
+        builder: (context, child) => PlanScreen(controller: widget.controller),
+      ),
       const LibraryScreen(),
-      StoriesScreen(controller: widget.controller),
-      PrivacyScreen(controller: widget.controller),
+      ListenableBuilder(
+        listenable: widget.controller,
+        builder: (context, child) =>
+            StoriesScreen(controller: widget.controller),
+      ),
+      ListenableBuilder(
+        listenable: widget.controller,
+        builder: (context, child) =>
+            PrivacyScreen(controller: widget.controller),
+      ),
     ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 920;
@@ -1069,68 +1098,126 @@ final class _JournalScreenState extends State<JournalScreen> {
   @override
   Widget build(BuildContext context) {
     final normalized = query.trim().toLowerCase();
-    final entries = widget.controller.data.journalEntries
-        .where(
-          (item) =>
-              normalized.isEmpty ||
-              item.title.toLowerCase().contains(normalized) ||
-              item.body.toLowerCase().contains(normalized),
-        )
-        .toList();
-    return _Page(
-      title: 'Your private journal',
-      eyebrow: 'Encrypted on this device',
-      action: FilledButton.icon(
-        onPressed: () => editJournal(context, widget.controller),
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('New entry'),
-      ),
-      children: [
-        TextField(
-          onChanged: (value) => setState(() => query = value),
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            labelText: 'Search your journal',
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (entries.isEmpty)
-          _EmptyState(
-            icon: Icons.menu_book_outlined,
-            title: normalized.isEmpty
-                ? 'A page with no audience'
-                : 'No matching entries',
-            body: normalized.isEmpty
-                ? 'Write what is true without polishing it for anyone else.'
-                : 'Try another word or clear your search.',
-          )
-        else
-          ...entries.map(
-            (entry) => Card(
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 10,
-                ),
-                title: Text(entry.title.isEmpty ? 'Untitled' : entry.title),
-                subtitle: Text(
-                  '${_date(entry.updatedAt)}\n${entry.body}',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                isThreeLine: true,
-                onTap: () =>
-                    editJournal(context, widget.controller, existing: entry),
-                trailing: IconButton(
-                  tooltip: 'Delete journal entry',
-                  onPressed: () => confirmDelete(
-                    context,
-                    'Permanently delete this journal entry?',
-                    () => widget.controller.deleteJournal(entry.id),
-                  ),
-                  icon: const Icon(Icons.delete_outline),
+    final entries = searchJournalEntries(
+      widget.controller.data.journalEntries,
+      query,
+    );
+    return CustomScrollView(
+      key: const ValueKey('journal_lazy_scroll'),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 16),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 920),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ENCRYPTED ON THIS DEVICE',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: HarborColors.sage,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 14,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          'Your private journal',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        FilledButton.icon(
+                          onPressed: () =>
+                              editJournal(context, widget.controller),
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('New entry'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    TextField(
+                      key: const ValueKey('journal_search_field'),
+                      onChanged: (value) => setState(() => query = value),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        labelText: 'Search your journal',
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
+          ),
+        ),
+        if (entries.isEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 48),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 920),
+                  child: _EmptyState(
+                    icon: Icons.menu_book_outlined,
+                    title: normalized.isEmpty
+                        ? 'A page with no audience'
+                        : 'No matching entries',
+                    body: normalized.isEmpty
+                        ? 'Write what is true without polishing it for anyone else.'
+                        : 'Try another word or clear your search.',
+                  ),
+                ),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 48),
+            sliver: SliverList.builder(
+              itemCount: entries.length,
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 920),
+                    child: Card(
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 10,
+                        ),
+                        title: Text(
+                          entry.title.isEmpty ? 'Untitled' : entry.title,
+                        ),
+                        subtitle: Text(
+                          '${_date(entry.updatedAt)}\n${entry.body}',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        isThreeLine: true,
+                        onTap: () => editJournal(
+                          context,
+                          widget.controller,
+                          existing: entry,
+                        ),
+                        trailing: IconButton(
+                          tooltip: 'Delete journal entry',
+                          onPressed: () => confirmDelete(
+                            context,
+                            'Permanently delete this journal entry?',
+                            () => widget.controller.deleteJournal(entry.id),
+                          ),
+                          icon: const Icon(Icons.delete_outline),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
       ],
