@@ -17,7 +17,7 @@ void main() {
         r"if: github\.event_name == 'push' && "
         r"github\.ref == 'refs/heads/main'",
       ).allMatches(workflow),
-      hasLength(3),
+      hasLength(7),
     );
     expect(workflow, contains('environment:\n      name: github-pages'));
     expect(
@@ -74,7 +74,44 @@ void main() {
     );
     expect(
       RegExp(r'^\s+id-token: write$', multiLine: true).allMatches(workflow),
-      hasLength(1),
+      hasLength(2),
+    );
+  });
+
+  test('web artifact gets locked SBOM and signed provenance evidence', () {
+    expect(
+      workflow,
+      contains(
+        'permissions:\n'
+        '      contents: read\n'
+        '      id-token: write\n'
+        '      attestations: write\n'
+        '      artifact-metadata: write',
+      ),
+    );
+    expect(
+      RegExp('actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6')
+          .allMatches(workflow),
+      hasLength(2),
+    );
+    final upload = workflow.indexOf('name: Preserve the verified web build');
+    final provenance = workflow.indexOf(
+      'name: Sign web artifact build provenance',
+    );
+    final sbom = workflow.indexOf('name: Sign web artifact SBOM');
+    final evidence = workflow.indexOf('name: Upload signed release evidence');
+    final pages = workflow.indexOf(
+      'name: Build and verify the GitHub Pages subpath artifact',
+    );
+    expect(upload, greaterThan(-1));
+    expect(provenance, greaterThan(upload));
+    expect(sbom, greaterThan(provenance));
+    expect(evidence, greaterThan(sbom));
+    expect(pages, greaterThan(evidence));
+    expect(workflow, contains('sbom-path: build/harbor-web.cdx.json'));
+    expect(
+      workflow,
+      contains(r'name: harbor-release-evidence-${{ github.sha }}'),
     );
   });
 }
