@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,7 +6,8 @@ import 'package:harbor_app/app.dart';
 import 'package:harbor_app/core/controller.dart';
 import 'package:harbor_app/core/vault.dart';
 
-import 'performance_probe.dart';
+import 'support/performance_fixture.dart';
+import 'support/performance_platform.dart';
 
 const _navigationThreshold = Duration(milliseconds: 150);
 
@@ -79,8 +79,15 @@ void main() {
       lessThanOrEqualTo(performanceAcceptanceSearchThreshold.inMicroseconds),
     );
 
-    stdout.writeln(
-      'HARBOR_UI_PERFORMANCE_RESULT ${jsonEncode({'status': 'passed', 'scope': 'flutter-widget-navigation-and-journal-search', 'platform': Platform.operatingSystem, 'totalRecords': performanceAcceptanceRecordCount, 'journalEntries': performanceAcceptanceRecordCount ~/ 2, 'navigationMicroseconds': navigationWatch.elapsedMicroseconds, 'navigationThresholdMicroseconds': _navigationThreshold.inMicroseconds, 'searchIterations': performanceAcceptanceSearchIterations, 'searchMaximumMicroseconds': maximumSearchMicroseconds, 'searchThresholdMicroseconds': performanceAcceptanceSearchThreshold.inMicroseconds, 'renderedCardsAfterSearch': 1, 'limitations': 'Flutter widget-test timing is not a baseline-device cold-launch or signed-application measurement.'})}',
+    final limitations = performancePlatformLabel == 'web'
+        ? 'Compiled browser-engine Flutter test with memory storage; not '
+              'release/profile tracing, plugin storage, browser executable '
+              'cold start, or a browser/device matrix.'
+        : 'Flutter widget-test timing with memory storage; not release/profile '
+              'tracing, plugin storage, cold start, or a device matrix.';
+
+    debugPrint(
+      'HARBOR_UI_PERFORMANCE_RESULT ${jsonEncode({'status': 'passed', 'scope': 'flutter-compiled-widget-navigation-and-journal-search', 'platform': performancePlatformLabel, 'totalRecords': performanceAcceptanceRecordCount, 'journalEntries': performanceAcceptanceRecordCount ~/ 2, 'navigationMicroseconds': navigationWatch.elapsedMicroseconds, 'navigationThresholdMicroseconds': _navigationThreshold.inMicroseconds, 'searchIterations': performanceAcceptanceSearchIterations, 'searchMaximumMicroseconds': maximumSearchMicroseconds, 'searchThresholdMicroseconds': performanceAcceptanceSearchThreshold.inMicroseconds, 'renderedCardsAfterSearch': 1, 'limitations': limitations})}',
     );
   });
 }

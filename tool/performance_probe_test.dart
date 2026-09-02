@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../test/support/performance_fixture.dart';
 import 'performance_probe.dart';
 
 void main() {

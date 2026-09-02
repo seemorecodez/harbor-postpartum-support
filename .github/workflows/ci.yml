@@ -49,8 +49,8 @@ jobs:
       - name: Run encrypted data integrity and search workload
         run: flutter test --no-pub tool/performance_probe_test.dart
 
-      - name: Run 1000-record Journal UI performance workload
-        run: flutter test --no-pub tool/performance_ui_probe_test.dart
+      - name: Run compiled-browser 1000-record Journal UI workload
+        run: flutter test --no-pub --platform chrome test/browser_performance_test.dart
 
       - name: Preserve visual-regression differences
         if: failure()

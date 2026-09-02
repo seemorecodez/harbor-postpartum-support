@@ -5,6 +5,7 @@ import 'package:harbor_app/core/journal_search.dart';
 import 'package:harbor_app/core/models.dart';
 
 import '../tool/performance_probe.dart';
+import 'support/performance_fixture.dart';
 
 void main() {
   test('journal search normalizes input and preserves record order', () {
@@ -48,6 +49,13 @@ void main() {
     expect(
       workflow,
       contains('flutter test --no-pub tool/performance_probe_test.dart'),
+    );
+    expect(
+      workflow,
+      contains(
+        'flutter test --no-pub --platform chrome '
+        'test/browser_performance_test.dart',
+      ),
     );
   });
 }

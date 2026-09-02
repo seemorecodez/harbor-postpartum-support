@@ -1,15 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:harbor_app/core/journal_search.dart';
 import 'package:harbor_app/core/models.dart';
 import 'package:harbor_app/core/vault.dart';
 
-const performanceAcceptanceRecordCount = 1000;
-const performanceAcceptanceMigrationRuns = 20;
-const performanceAcceptanceSearchIterations = 25;
-const performanceAcceptanceSearchThreshold = Duration(milliseconds: 300);
+import '../test/support/performance_fixture.dart';
+import '../test/support/performance_platform.dart';
 
 final class HarborPerformanceProbeResult {
   const HarborPerformanceProbeResult({
@@ -50,7 +47,7 @@ final class HarborPerformanceProbeResult {
   Map<String, Object> toJson() => {
     'status': passed ? 'passed' : 'failed',
     'scope': 'shared-production-vault-and-search-code',
-    'platform': Platform.operatingSystem,
+    'platform': performancePlatformLabel,
     'totalRecords': totalRecords,
     'checkIns': checkIns,
     'journalEntries': journalEntries,
@@ -89,7 +86,8 @@ Future<HarborPerformanceProbeResult> runHarborPerformanceProbe({
   await vault.save(currentData);
   saveWatch.stop();
   final encrypted = records.values[HarborVault.recordKey];
-  if (encrypted == null || encrypted.contains(_syntheticPrivateSentinel)) {
+  if (encrypted == null ||
+      encrypted.contains(performanceSyntheticPrivateSentinel)) {
     throw StateError('Harbor encrypted-record verification failed.');
   }
 
@@ -153,7 +151,7 @@ Future<HarborPerformanceProbeResult> runHarborPerformanceProbe({
     }
     final migratedEnvelope = migrationRecords.values[HarborVault.recordKey];
     if (migratedEnvelope == null ||
-        migratedEnvelope.contains(_syntheticPrivateSentinel)) {
+        migratedEnvelope.contains(performanceSyntheticPrivateSentinel)) {
       throw StateError(
         'Harbor migrated-record encryption verification failed.',
       );
@@ -180,56 +178,6 @@ Future<HarborPerformanceProbeResult> runHarborPerformanceProbe({
     throw StateError('Harbor performance acceptance workload failed.');
   }
   return result;
-}
-
-const _syntheticPrivateSentinel = 'HARBOR-PERFORMANCE-PRIVATE-SENTINEL';
-
-HarborData buildHarborPerformanceData({
-  required int totalRecords,
-  required int cycle,
-}) {
-  final checkInCount = totalRecords ~/ 2;
-  final journalCount = totalRecords - checkInCount;
-  final base = DateTime.utc(2026, 1, 1).add(Duration(days: cycle));
-  return HarborData(
-    onboardingComplete: true,
-    postpartumStage: '3-6 months',
-    checkIns: List<CheckIn>.generate(
-      checkInCount,
-      (index) => CheckIn(
-        id: 'check-in-$cycle-$index',
-        createdAt: base.add(Duration(minutes: index)),
-        mood: 1 + index % 5,
-        anxiety: 1 + (index + 1) % 5,
-        rest: 1 + (index + 2) % 5,
-        note: '$_syntheticPrivateSentinel check-in $cycle $index',
-      ),
-    ),
-    journalEntries: List<JournalEntry>.generate(
-      journalCount,
-      (index) => JournalEntry(
-        id: 'journal-$cycle-$index',
-        createdAt: base.add(Duration(minutes: checkInCount + index)),
-        updatedAt: base.add(Duration(minutes: checkInCount + index + 1)),
-        title: index == journalCount - 1
-            ? 'Target journal $cycle $index'
-            : 'Journal $cycle $index',
-        body: '$_syntheticPrivateSentinel journal $cycle $index',
-      ),
-    ),
-    clinicianQuestions: [
-      ClinicianQuestion(
-        id: 'question-$cycle',
-        text: '$_syntheticPrivateSentinel question $cycle',
-      ),
-    ],
-    hardDayPlan: const HardDayPlan(
-      safePerson: 'Synthetic support person',
-      safePersonPhone: '5550100',
-      groundingStep: 'Synthetic grounding step',
-      practicalHelp: 'Synthetic practical help',
-    ),
-  );
 }
 
 void _verifySearch(HarborData data, int totalRecords) {
