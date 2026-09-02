@@ -121,6 +121,10 @@ void main() {
         .cast<Map<String, Object?>>();
     expect(projectEvidence, hasLength(2));
     expect(
+      projectEvidence.map((entry) => entry['fileName']),
+      orderedEquals(['license', 'notice']),
+    );
+    expect(
       projectEvidence.singleWhere(
         (entry) => entry['evidenceType'] == 'notice',
       )['classification'],

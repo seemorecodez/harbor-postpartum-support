@@ -104,7 +104,7 @@ Map<String, Object?> generateDependencyLicenseInventory({
       }
       observedHashes.add(hash);
       evidence.add({
-        'fileName': file.uri.pathSegments.last,
+        'fileName': file.uri.pathSegments.last.toLowerCase(),
         'resolution': resolution,
         'sha256': hash,
         'evidenceType': evidenceType,
