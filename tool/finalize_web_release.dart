@@ -17,6 +17,7 @@ const _precachePaths = <String>{
   'main.dart.mjs',
   'main.dart.wasm',
   'manifest.json',
+  'privacy.html',
   'version.json',
 };
 

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'accessibility.dart';
 import 'content/guide.dart';
+import 'content/privacy_notice.dart';
 import 'content/stories.dart';
 import 'core/app_lock.dart';
 import 'core/app_visibility.dart';
@@ -2551,6 +2552,24 @@ final class PrivacyScreen extends StatelessWidget {
       ),
       const SizedBox(height: 24),
       Text(
+        'Full privacy notice',
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        'Read the complete measured disclosure inside Harbor without opening a website or reading your private vault.',
+      ),
+      const SizedBox(height: 14),
+      OutlinedButton.icon(
+        key: const ValueKey('open_privacy_notice'),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const PrivacyNoticeScreen()),
+        ),
+        icon: const Icon(Icons.policy_outlined),
+        label: const Text('Read full privacy notice'),
+      ),
+      const SizedBox(height: 24),
+      Text(
         'About this Harbor build',
         style: Theme.of(context).textTheme.titleLarge,
       ),
@@ -2593,6 +2612,73 @@ final class PrivacyScreen extends StatelessWidget {
         label: const Text('Erase all local data'),
       ),
     ],
+  );
+}
+
+final class PrivacyNoticeScreen extends StatelessWidget {
+  const PrivacyNoticeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Privacy notice'),
+      actions: [
+        IconButton(
+          tooltip: 'Urgent support',
+          color: HarborColors.clay,
+          onPressed: () => showEmergencySupport(context),
+          icon: const Icon(Icons.emergency_outlined),
+        ),
+      ],
+    ),
+    body: SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 48),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _InfoPanel(
+                  icon: Icons.policy_outlined,
+                  title: HarborPrivacyNotice.status,
+                  body: HarborPrivacyNotice.summary,
+                  tone: HarborColors.blush,
+                ),
+                const SizedBox(height: 12),
+                Semantics(
+                  label:
+                      'Privacy notice version ${HarborPrivacyNotice.version}',
+                  excludeSemantics: true,
+                  child: const Text(
+                    'Notice version ${HarborPrivacyNotice.version}',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const SelectableText(
+                  'Public address: ${HarborPrivacyNotice.publicAddress}',
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'This notice is bundled in Harbor. Opening this screen does not visit the public address and does not read your entries.',
+                ),
+                for (final section in HarborPrivacyNotice.sections) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    section.title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(section.body),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 }
 

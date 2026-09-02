@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harbor_app/app.dart';
+import 'package:harbor_app/content/privacy_notice.dart';
 import 'package:harbor_app/core/app_lock.dart';
 import 'package:harbor_app/core/controller.dart';
 import 'package:harbor_app/core/models.dart';
@@ -191,6 +192,36 @@ void main() {
     await expectCoreGuidelines(tester);
     await tester.tap(find.text('Keep private'));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('privacy notice reflows at phone size and 200% text', (
+    tester,
+  ) async {
+    useViewport(tester, const Size(390, 844), textScale: 2);
+    final controller = await readyController();
+    await tester.pumpWidget(HarborApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Privacy').last);
+    await tester.pumpAndSettle();
+    final openNotice = find.byKey(const ValueKey('open_privacy_notice'));
+    await tester.ensureVisible(openNotice);
+    await tester.tap(openNotice);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Privacy notice'), findsOneWidget);
+    expect(find.text(HarborPrivacyNotice.status), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(
+        'Privacy notice version ${HarborPrivacyNotice.version}',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('No live community board'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await expectCoreGuidelines(tester);
   });
 
   testWidgets('app-lock setup reflows at phone size and 200% text', (

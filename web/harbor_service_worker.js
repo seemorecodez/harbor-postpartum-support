@@ -3,7 +3,7 @@
 // Increment this exact cache name for every release. A stale Harbor cache must
 // never silently survive a clinical-content correction or privacy fix.
 const CACHE_PREFIX = "harbor-shell-";
-const CACHE_NAME = "harbor-shell-0.1.0-alpha.28";
+const CACHE_NAME = "harbor-shell-0.1.0-alpha.29";
 const STAGING_SUFFIX = "-installing";
 const STAGING_CACHE_NAME = `${CACHE_NAME}${STAGING_SUFFIX}`;
 
@@ -39,10 +39,7 @@ async function verifyReleaseResponse(asset, response) {
   });
 }
 
-function releaseAssetForRequest(request, navigation = false) {
-  if (navigation) {
-    return RELEASE_ASSETS.find((asset) => asset.url === "./index.html");
-  }
+function releaseAssetForRequest(request) {
   const requestUrl = new URL(request.url);
   const scopePath = new URL(self.registration.scope).pathname;
   if (!requestUrl.pathname.startsWith(scopePath)) return undefined;
@@ -52,6 +49,12 @@ function releaseAssetForRequest(request, navigation = false) {
     RELEASE_ASSETS.find((asset) => asset.url === exactUrl) ||
     RELEASE_ASSETS.find((asset) => asset.url === relativePath)
   );
+}
+
+function releaseAssetForNavigation(request) {
+  const exact = releaseAssetForRequest(request);
+  if (exact && exact.url === "./privacy.html") return exact;
+  return RELEASE_ASSETS.find((asset) => asset.url === "./index.html");
 }
 
 async function completedReleaseCacheNames() {
@@ -145,21 +148,24 @@ self.addEventListener("fetch", (event) => {
   if (event.request.mode === "navigate") {
     event.respondWith(
       (async () => {
-        const indexAsset = releaseAssetForRequest(event.request, true);
+        const navigationAsset = releaseAssetForNavigation(event.request);
+        const cacheKey = navigationAsset ? navigationAsset.url : "./index.html";
         try {
-          if (!indexAsset) throw new Error("Harbor index metadata is missing.");
+          if (!navigationAsset) {
+            throw new Error("Harbor navigation metadata is missing.");
+          }
           const verified = await verifyReleaseResponse(
-            indexAsset,
+            navigationAsset,
             await fetch(event.request),
           );
           const cache = await caches.open(CACHE_NAME);
-          await cache.put("./index.html", verified.clone());
+          await cache.put(cacheKey, verified.clone());
           return verified;
         } catch (_) {
           const current = await (
             await caches.open(CACHE_NAME)
-          ).match("./index.html");
-          return current || (await matchPreviousRelease("./index.html"));
+          ).match(cacheKey);
+          return current || (await matchPreviousRelease(cacheKey));
         }
       })(),
     );

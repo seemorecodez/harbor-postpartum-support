@@ -15,13 +15,14 @@ void main() {
         .writeAsString(workerSource);
     final files = <String, List<int>>{
       'index.html': '<!doctype html><title>Harbor</title>'.codeUnits,
-      'flutter_bootstrap.js': 'const HARBOR_RELEASE="alpha.28";'.codeUnits,
+      'flutter_bootstrap.js': 'const HARBOR_RELEASE="alpha.29";'.codeUnits,
       'flutter.js': 'window._flutter={};'.codeUnits,
       'main.dart.js': 'consoleThisIsNotALogSink();'.codeUnits,
       'main.dart.mjs': 'export const harbor=true;'.codeUnits,
       'main.dart.wasm': <int>[0, 97, 115, 109, 1, 0, 0, 0],
       'manifest.json': '{"name":"Harbor"}'.codeUnits,
-      'version.json': '{"version":"0.1.0-alpha.28"}'.codeUnits,
+      'privacy.html': '<!doctype html><title>Privacy</title>'.codeUnits,
+      'version.json': '{"version":"0.1.0-alpha.29"}'.codeUnits,
       'assets/fonts/HarborSans-Regular.ttf': <int>[1, 2, 3, 4, 5],
     };
     for (final entry in files.entries) {
@@ -43,12 +44,13 @@ void main() {
       final worker = await File('${fixture.path}/harbor_service_worker.js')
           .readAsString();
 
-      expect(finalized.assets, 10);
-      expect(finalized.precachedAssets, 9);
+      expect(finalized.assets, 11);
+      expect(finalized.precachedAssets, 10);
       expect(verified.assets, finalized.assets);
       expect(verified.precachedAssets, finalized.precachedAssets);
       expect(worker, contains('./assets/fonts/HarborSans-Regular.ttf'));
-      expect(worker, contains('./flutter_bootstrap.js?v=0.1.0-alpha.28'));
+      expect(worker, contains('./flutter_bootstrap.js?v=0.1.0-alpha.29'));
+      expect(worker, contains('./privacy.html'));
       expect(RegExp(r'"sha256":"[0-9a-f]{64}"').hasMatch(worker), isTrue);
       expect(worker, isNot(contains('HARBOR_RELEASE_ASSETS_START */\n  []')));
     },
