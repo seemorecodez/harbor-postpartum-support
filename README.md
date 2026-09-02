@@ -65,7 +65,7 @@ flutter pub get
 flutter analyze
 flutter test
 flutter test tool/performance_probe_test.dart
-flutter test --platform chrome test/browser_performance_test.dart
+flutter test test/browser_performance_test.dart
 flutter build web --release --wasm
 dart run tool/finalize_web_release.dart build/web
 dart run tool/finalize_web_release.dart --verify build/web

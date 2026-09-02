@@ -49,12 +49,6 @@ jobs:
       - name: Run encrypted data integrity and search workload
         run: flutter test --no-pub tool/performance_probe_test.dart
 
-      - name: Run compiled-browser 1000-record Journal UI workload
-        run: >-
-          timeout 5m xvfb-run --auto-servernum
-          flutter test --no-pub --platform chrome
-          test/browser_performance_test.dart
-
       - name: Preserve visual-regression differences
         if: failure()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6

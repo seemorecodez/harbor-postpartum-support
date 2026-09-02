@@ -79,7 +79,11 @@ void main() {
       lessThanOrEqualTo(performanceAcceptanceSearchThreshold.inMicroseconds),
     );
 
-    final limitations = performancePlatformLabel == 'web'
+    final isBrowserCompiled = performancePlatformLabel == 'web';
+    final scope = isBrowserCompiled
+        ? 'flutter-browser-compiled-widget-navigation-and-journal-search'
+        : 'flutter-widget-navigation-and-journal-search';
+    final limitations = isBrowserCompiled
         ? 'Compiled browser-engine Flutter test with memory storage; not '
               'release/profile tracing, plugin storage, browser executable '
               'cold start, or a browser/device matrix.'
@@ -87,7 +91,7 @@ void main() {
               'tracing, plugin storage, cold start, or a device matrix.';
 
     debugPrint(
-      'HARBOR_UI_PERFORMANCE_RESULT ${jsonEncode({'status': 'passed', 'scope': 'flutter-compiled-widget-navigation-and-journal-search', 'platform': performancePlatformLabel, 'totalRecords': performanceAcceptanceRecordCount, 'journalEntries': performanceAcceptanceRecordCount ~/ 2, 'navigationMicroseconds': navigationWatch.elapsedMicroseconds, 'navigationThresholdMicroseconds': _navigationThreshold.inMicroseconds, 'searchIterations': performanceAcceptanceSearchIterations, 'searchMaximumMicroseconds': maximumSearchMicroseconds, 'searchThresholdMicroseconds': performanceAcceptanceSearchThreshold.inMicroseconds, 'renderedCardsAfterSearch': 1, 'limitations': limitations})}',
+      'HARBOR_UI_PERFORMANCE_RESULT ${jsonEncode({'status': 'passed', 'scope': scope, 'platform': performancePlatformLabel, 'totalRecords': performanceAcceptanceRecordCount, 'journalEntries': performanceAcceptanceRecordCount ~/ 2, 'navigationMicroseconds': navigationWatch.elapsedMicroseconds, 'navigationThresholdMicroseconds': _navigationThreshold.inMicroseconds, 'searchIterations': performanceAcceptanceSearchIterations, 'searchMaximumMicroseconds': maximumSearchMicroseconds, 'searchThresholdMicroseconds': performanceAcceptanceSearchThreshold.inMicroseconds, 'renderedCardsAfterSearch': 1, 'limitations': limitations})}',
     );
   });
 }

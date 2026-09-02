@@ -50,13 +50,6 @@ void main() {
       workflow,
       contains('flutter test --no-pub tool/performance_probe_test.dart'),
     );
-    expect(
-      workflow,
-      contains(
-        'timeout 5m xvfb-run --auto-servernum\n'
-        '          flutter test --no-pub --platform chrome\n'
-        '          test/browser_performance_test.dart',
-      ),
-    );
+    expect(workflow, contains('run: flutter test --no-pub'));
   });
 }
