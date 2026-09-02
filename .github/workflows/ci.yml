@@ -66,6 +66,9 @@ jobs:
       - name: Test
         run: flutter test --no-pub
 
+      - name: Test release recovery verifier
+        run: python3 -m unittest tool/release_recovery_drill_test.py
+
       - name: Run encrypted data integrity and search workload
         run: flutter test --no-pub tool/performance_probe_test.dart
 
