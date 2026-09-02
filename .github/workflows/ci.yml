@@ -50,7 +50,10 @@ jobs:
         run: flutter test --no-pub tool/performance_probe_test.dart
 
       - name: Run compiled-browser 1000-record Journal UI workload
-        run: flutter test --no-pub --platform chrome test/browser_performance_test.dart
+        run: >-
+          timeout 5m xvfb-run --auto-servernum
+          flutter test --no-pub --platform chrome
+          test/browser_performance_test.dart
 
       - name: Preserve visual-regression differences
         if: failure()

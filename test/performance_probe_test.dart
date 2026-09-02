@@ -53,8 +53,9 @@ void main() {
     expect(
       workflow,
       contains(
-        'flutter test --no-pub --platform chrome '
-        'test/browser_performance_test.dart',
+        'timeout 5m xvfb-run --auto-servernum\n'
+        '          flutter test --no-pub --platform chrome\n'
+        '          test/browser_performance_test.dart',
       ),
     );
   });
