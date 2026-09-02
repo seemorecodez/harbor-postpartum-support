@@ -23,6 +23,7 @@ The public engineering-alpha web app is available at [seemorecodez.github.io/har
 - Offline editorial story drafts with explicit non-live/provenance labels, local search/topic filters, and encrypted private resonance stored through schema 3.
 - An accessible About/content-version path that exposes the exact app, build, schema, guide, and Stories catalog identities together with their unapproved engineering-alpha status.
 - A manual diagnostic preview containing only app version, build number, platform, data-schema version, and a bounded error code; nothing is copied until explicit confirmation.
+- A fail-closed runtime dependency policy that allowlists exact package versions, hashes 29 reviewed license/notice texts across Harbor and its 64-component runtime closure, embeds approved license classifications in the signed CycloneDX SBOM, and makes an immutable OSV `pubspec.lock` scan a prerequisite for public deployment. This is automated drift/vulnerability evidence, not legal approval.
 
 There are no Harbor accounts, analytics, advertisements, tracking pixels, cloud synchronization, remote AI calls, or backend content APIs in this source. The anonymous message board is absent pending explicit approval of its network privacy boundary.
 
@@ -71,8 +72,8 @@ flutter build web --release --wasm
 dart run tool/finalize_web_release.dart build/web
 dart run tool/finalize_web_release.dart --verify build/web
 dart pub deps --json > build/dart-pub-deps.json
-dart run tool/generate_sbom.dart build/dart-pub-deps.json pubspec.lock build/harbor-web.cdx.json
-dart run tool/generate_sbom.dart --verify build/dart-pub-deps.json pubspec.lock build/harbor-web.cdx.json
+dart run tool/generate_sbom.dart build/dart-pub-deps.json pubspec.lock .dart_tool/package_config.json tool/runtime_dependency_policy.json build/harbor-web.cdx.json build/harbor-runtime-licenses.json
+dart run tool/generate_sbom.dart --verify build/dart-pub-deps.json pubspec.lock .dart_tool/package_config.json tool/runtime_dependency_policy.json build/harbor-web.cdx.json build/harbor-runtime-licenses.json
 ```
 
 Android requires the Android SDK and personal acceptance of its licenses. iOS and macOS builds require macOS with Xcode. Windows currently requires Developer Mode or an equivalent symlink-capable build environment for the selected dependencies.

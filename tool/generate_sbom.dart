@@ -3,16 +3,20 @@ import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
 
+import 'dependency_license_inventory.dart';
+
 const _repositoryUrl =
     'https://github.com/seemorecodez/harbor-postpartum-support';
 
 void main(List<String> arguments) {
   final verify = arguments.isNotEmpty && arguments.first == '--verify';
   final paths = verify ? arguments.skip(1).toList() : arguments;
-  if (paths.length != 3) {
+  if (paths.length != 6) {
     stderr.writeln(
       'Usage: dart run tool/generate_sbom.dart [--verify] '
-      '<dart-pub-deps.json> <pubspec.lock> <output.cdx.json>',
+      '<dart-pub-deps.json> <pubspec.lock> <package_config.json> '
+      '<dependency_policy.json> <output.cdx.json> '
+      '<license_inventory.json>',
     );
     exitCode = 64;
     return;
@@ -20,13 +24,33 @@ void main(List<String> arguments) {
 
   final dependencyGraph = File(paths[0]).readAsStringSync();
   final lockfile = File(paths[1]).readAsStringSync();
-  final expected = encodeCycloneDx(
-    generateCycloneDx(dependencyGraph: dependencyGraph, lockfile: lockfile),
+  final baseDocument = generateCycloneDx(
+    dependencyGraph: dependencyGraph,
+    lockfile: lockfile,
   );
-  final output = File(paths[2]);
+  final inventory = generateDependencyLicenseInventory(
+    sbom: baseDocument,
+    packageConfigContent: File(paths[2]).readAsStringSync(),
+    packageConfigUri: File(paths[2]).absolute.uri,
+    policyContent: File(paths[3]).readAsStringSync(),
+    dartSdkRoot: File(Platform.resolvedExecutable).parent.parent,
+  );
+  final expected = encodeCycloneDx(
+    generateCycloneDx(
+      dependencyGraph: dependencyGraph,
+      lockfile: lockfile,
+      licenseEvidence: licenseEvidenceByComponent(inventory),
+    ),
+  );
+  final expectedInventory = encodeCycloneDx(inventory);
+  final output = File(paths[4]);
+  final inventoryOutput = File(paths[5]);
 
   if (verify) {
-    if (!output.existsSync() || output.readAsStringSync() != expected) {
+    if (!output.existsSync() ||
+        output.readAsStringSync() != expected ||
+        !inventoryOutput.existsSync() ||
+        inventoryOutput.readAsStringSync() != expectedInventory) {
       stderr.writeln('Harbor SBOM verification failed: ${output.path}');
       exitCode = 1;
       return;
@@ -37,12 +61,15 @@ void main(List<String> arguments) {
 
   output.parent.createSync(recursive: true);
   output.writeAsStringSync(expected);
+  inventoryOutput.parent.createSync(recursive: true);
+  inventoryOutput.writeAsStringSync(expectedInventory);
   final decoded = jsonDecode(expected) as Map<String, dynamic>;
   stdout.writeln(
     jsonEncode({
       'status': 'generated',
       'path': output.path,
       'components': (decoded['components'] as List<Object?>).length,
+      'licenseInventory': inventoryOutput.path,
     }),
   );
 }
@@ -50,6 +77,7 @@ void main(List<String> arguments) {
 Map<String, Object?> generateCycloneDx({
   required String dependencyGraph,
   required String lockfile,
+  Map<String, List<Map<String, Object?>>> licenseEvidence = const {},
 }) {
   final graph = jsonDecode(dependencyGraph) as Map<String, dynamic>;
   final rootName = graph['root'] as String?;
@@ -91,7 +119,12 @@ Map<String, Object?> generateCycloneDx({
   final components = <Map<String, Object?>>[];
   for (final name in runtimeNames.toList()..sort()) {
     components.add(
-      _componentFor(packages[name]!, sdkVersions, lockHashes[name]),
+      _componentFor(
+        packages[name]!,
+        sdkVersions,
+        lockHashes[name],
+        licenseEvidence[name] ?? const [],
+      ),
     );
   }
 
@@ -107,8 +140,11 @@ Map<String, Object?> generateCycloneDx({
     'version': dartVersion,
     'purl': dartRef,
     'scope': 'required',
+    if (licenseEvidence['Dart SDK'] case final evidence?)
+      'licenses': _cycloneDxLicenses(evidence),
     'properties': [
       {'name': 'harbor:source', 'value': 'sdk'},
+      ..._licenseHashProperties(licenseEvidence['Dart SDK'] ?? const []),
     ],
   });
   components.sort(
@@ -145,8 +181,34 @@ Map<String, Object?> generateCycloneDx({
   final buildNumber = rootVersion.contains('+')
       ? rootVersion.split('+').last
       : 'none';
+  final rootComponent = <String, Object?>{
+    'type': 'application',
+    'bom-ref': rootRef,
+    'name': rootName,
+    'version': rootVersion,
+    'purl': rootRef,
+    'description':
+        'Harbor shared Flutter runtime dependency closure. Platform '
+        'implementations resolved by the shared lockfile are included; '
+        'the web compiler may tree-shake target-inapplicable code.',
+    'externalReferences': [
+      {'type': 'vcs', 'url': _repositoryUrl},
+    ],
+    if (licenseEvidence[rootName] case final evidence?)
+      'licenses': _cycloneDxLicenses(evidence),
+    'properties': [
+      {'name': 'harbor:build-number', 'value': buildNumber},
+      {
+        'name': 'harbor:composition',
+        'value': 'locked-shared-runtime-dependency-closure',
+      },
+      {'name': 'harbor:target', 'value': 'web-release'},
+      ..._licenseHashProperties(licenseEvidence[rootName] ?? const []),
+    ],
+  };
   final serialSeed = jsonEncode({
     'root': rootRef,
+    'rootComponent': rootComponent,
     'components': components,
     'dependencies': dependencies,
   });
@@ -165,28 +227,7 @@ Map<String, Object?> generateCycloneDx({
           },
         ],
       },
-      'component': {
-        'type': 'application',
-        'bom-ref': rootRef,
-        'name': rootName,
-        'version': rootVersion,
-        'purl': rootRef,
-        'description':
-            'Harbor shared Flutter runtime dependency closure. Platform '
-            'implementations resolved by the shared lockfile are included; '
-            'the web compiler may tree-shake target-inapplicable code.',
-        'externalReferences': [
-          {'type': 'vcs', 'url': _repositoryUrl},
-        ],
-        'properties': [
-          {'name': 'harbor:build-number', 'value': buildNumber},
-          {
-            'name': 'harbor:composition',
-            'value': 'locked-shared-runtime-dependency-closure',
-          },
-          {'name': 'harbor:target', 'value': 'web-release'},
-        ],
-      },
+      'component': rootComponent,
     },
     'components': components,
     'dependencies': dependencies,
@@ -219,6 +260,7 @@ Map<String, Object?> _componentFor(
   Map<String, dynamic> package,
   Map<String, String> sdkVersions,
   String? archiveHash,
+  List<Map<String, Object?>> licenseEvidence,
 ) {
   final name = package['name'] as String;
   final source = package['source'] as String;
@@ -236,6 +278,8 @@ Map<String, Object?> _componentFor(
     'version': version,
     'purl': reference,
     'scope': 'required',
+    if (licenseEvidence.isNotEmpty)
+      'licenses': _cycloneDxLicenses(licenseEvidence),
     if (archiveHash != null)
       'hashes': [
         {'alg': 'SHA-256', 'content': archiveHash},
@@ -247,6 +291,7 @@ Map<String, Object?> _componentFor(
     'properties': [
       {'name': 'harbor:source', 'value': source},
       {'name': 'harbor:dependency-kind', 'value': package['kind'] as String},
+      ..._licenseHashProperties(licenseEvidence),
     ],
   };
 }
@@ -268,6 +313,43 @@ List<String> _strings(Object? value) =>
     (value as List<Object?>? ?? const []).cast<String>();
 
 String _purl(String value) => Uri.encodeComponent(value);
+
+List<Map<String, Object?>> _cycloneDxLicenses(
+  List<Map<String, Object?>> evidence,
+) {
+  final classifications =
+      evidence
+          .where((entry) => entry['evidenceType'] == 'license')
+          .map((entry) => entry['classification'] as String)
+          .toSet()
+          .toList()
+        ..sort();
+  return [
+    for (final classification in classifications)
+      {
+        'license': classification.startsWith('LicenseRef-')
+            ? {'name': classification}
+            : {'id': classification},
+      },
+  ];
+}
+
+List<Map<String, Object?>> _licenseHashProperties(
+  List<Map<String, Object?>> evidence,
+) {
+  final entries = [...evidence]
+    ..sort(
+      (left, right) =>
+          (left['sha256'] as String).compareTo(right['sha256'] as String),
+    );
+  return [
+    for (var index = 0; index < entries.length; index++)
+      {
+        'name': 'harbor:license-text-sha256:$index',
+        'value': entries[index]['sha256'] as String,
+      },
+  ];
+}
 
 String _uuidV5(String name) {
   // RFC 4122 URL namespace: 6ba7b811-9dad-11d1-80b4-00c04fd430c8.

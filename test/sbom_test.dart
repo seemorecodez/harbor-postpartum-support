@@ -128,6 +128,64 @@ packages:
     expect(first, isNot(contains('dev_only')));
   });
 
+  test('SBOM embeds reviewed license classifications and evidence hashes', () {
+    const evidenceHash =
+        'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
+    final document = generateCycloneDx(
+      dependencyGraph: graph,
+      lockfile: lockfile,
+      licenseEvidence: const {
+        'harbor_app': [
+          {
+            'classification': 'MIT',
+            'evidenceType': 'license',
+            'sha256': evidenceHash,
+          },
+        ],
+        'runtime_a': [
+          {
+            'classification': 'Apache-2.0',
+            'evidenceType': 'license',
+            'sha256': evidenceHash,
+          },
+          {
+            'classification': 'NoticeRef-Example',
+            'evidenceType': 'notice',
+            'sha256': 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+          },
+        ],
+      },
+    );
+    final metadata = document['metadata'] as Map<String, Object?>;
+    final root = metadata['component'] as Map<String, Object?>;
+    expect(root['licenses'], [
+      {
+        'license': {'id': 'MIT'},
+      },
+    ]);
+    final components = (document['components'] as List<Object?>)
+        .cast<Map<String, Object?>>();
+    final runtime = components.singleWhere(
+      (component) => component['name'] == 'runtime_a',
+    );
+    expect(runtime['licenses'], [
+      {
+        'license': {'id': 'Apache-2.0'},
+      },
+    ]);
+    expect(jsonEncode(runtime), contains(evidenceHash));
+    expect(jsonEncode(runtime), isNot(contains('NoticeRef-Example')));
+    expect(
+      document['serialNumber'],
+      isNot(
+        generateCycloneDx(
+          dependencyGraph: graph,
+          lockfile: lockfile,
+        )['serialNumber'],
+      ),
+    );
+  });
+
   test('hosted runtime components require a locked archive hash', () {
     expect(
       () => generateCycloneDx(dependencyGraph: graph, lockfile: 'packages:\n'),
@@ -158,7 +216,10 @@ packages:
       RegExp(
         r'dart run tool/generate_sbom\.dart --verify \\\s+'
         r'build/harbor-dependencies\.json pubspec\.lock \\\s+'
-        r'build/harbor-web\.cdx\.json',
+        r'\.dart_tool/package_config\.json \\\s+'
+        r'tool/runtime_dependency_policy\.json \\\s+'
+        r'build/harbor-web\.cdx\.json \\\s+'
+        r'build/harbor-runtime-licenses\.json',
       ).hasMatch(workflow),
       isTrue,
     );
@@ -177,5 +238,25 @@ packages:
       hasLength(2),
     );
     expect(workflow, contains(r'harbor-release-evidence-${{ github.sha }}'));
+    expect(
+      workflow,
+      contains('cp build/harbor-runtime-licenses.json build/release-evidence/'),
+    );
+  });
+
+  test('public workflow blocks deployment on immutable OSV lock scan', () {
+    final workflow = File('.github/workflows/ci.yml').readAsStringSync();
+    expect(
+      workflow,
+      contains(
+        'google/osv-scanner-action/.github/workflows/'
+        'osv-scanner-reusable.yml@'
+        '6e4298ebc4db23e847df9b2e2de2939d6f066c67',
+      ),
+    );
+    expect(workflow, contains('--lockfile=./pubspec.lock'));
+    expect(workflow, contains('fail-on-vuln: true'));
+    expect(workflow, contains('security-events: write'));
+    expect(workflow, contains('needs:\n      - osv_scan\n      - verify'));
   });
 }

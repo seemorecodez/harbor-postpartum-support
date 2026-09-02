@@ -11,7 +11,7 @@ void main() {
 
   test('Pages deployment is downstream of the complete verification job', () {
     expect(workflow, contains('deploy_pages:'));
-    expect(workflow, contains('needs: verify'));
+    expect(workflow, contains('needs:\n      - osv_scan\n      - verify'));
     expect(
       RegExp(
         r"if: github\.event_name == 'push' && "

@@ -15,6 +15,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  osv_scan:
+    name: Scan locked dependencies for known vulnerabilities
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@6e4298ebc4db23e847df9b2e2de2939d6f066c67 # v2.5.1
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    with:
+      scan-args: |-
+        --lockfile=./pubspec.lock
+      results-file-name: harbor-osv.sarif
+      upload-sarif: true
+      fail-on-vuln: true
+      runs-on: ubuntu-24.04
+
   verify:
     name: Analyze, test, and build WebAssembly
     runs-on: ubuntu-24.04
@@ -78,10 +93,16 @@ jobs:
           dart pub deps --json > build/harbor-dependencies.json
           dart run tool/generate_sbom.dart \
             build/harbor-dependencies.json pubspec.lock \
-            build/harbor-web.cdx.json
+            .dart_tool/package_config.json \
+            tool/runtime_dependency_policy.json \
+            build/harbor-web.cdx.json \
+            build/harbor-runtime-licenses.json
           dart run tool/generate_sbom.dart --verify \
             build/harbor-dependencies.json pubspec.lock \
-            build/harbor-web.cdx.json
+            .dart_tool/package_config.json \
+            tool/runtime_dependency_policy.json \
+            build/harbor-web.cdx.json \
+            build/harbor-runtime-licenses.json
 
       - name: Verify commands did not change governed source
         shell: bash
@@ -126,6 +147,7 @@ jobs:
           cp "${{ steps.attest_sbom.outputs.bundle-path }}" \
             build/release-evidence/sbom.sigstore.json
           cp build/harbor-web.cdx.json build/release-evidence/
+          cp build/harbor-runtime-licenses.json build/release-evidence/
 
       - name: Upload signed release evidence
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -164,7 +186,9 @@ jobs:
   deploy_pages:
     name: Deploy verified web artifact to GitHub Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: verify
+    needs:
+      - osv_scan
+      - verify
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
