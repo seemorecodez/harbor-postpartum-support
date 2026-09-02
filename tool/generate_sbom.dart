@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cryptography/cryptography.dart';
+
 const _repositoryUrl =
     'https://github.com/seemorecodez/harbor-postpartum-support';
 
@@ -143,9 +145,15 @@ Map<String, Object?> generateCycloneDx({
   final buildNumber = rootVersion.contains('+')
       ? rootVersion.split('+').last
       : 'none';
+  final serialSeed = jsonEncode({
+    'root': rootRef,
+    'components': components,
+    'dependencies': dependencies,
+  });
   return {
     'bomFormat': 'CycloneDX',
     'specVersion': '1.5',
+    'serialNumber': 'urn:uuid:${_uuidV5('$_repositoryUrl\n$serialSeed')}',
     'version': 1,
     'metadata': {
       'tools': {
@@ -260,3 +268,41 @@ List<String> _strings(Object? value) =>
     (value as List<Object?>? ?? const []).cast<String>();
 
 String _purl(String value) => Uri.encodeComponent(value);
+
+String _uuidV5(String name) {
+  // RFC 4122 URL namespace: 6ba7b811-9dad-11d1-80b4-00c04fd430c8.
+  const namespace = <int>[
+    0x6b,
+    0xa7,
+    0xb8,
+    0x11,
+    0x9d,
+    0xad,
+    0x11,
+    0xd1,
+    0x80,
+    0xb4,
+    0x00,
+    0xc0,
+    0x4f,
+    0xd4,
+    0x30,
+    0xc8,
+  ];
+  final bytes = Sha1()
+      .toSync()
+      .hashSync([...namespace, ...utf8.encode(name)])
+      .bytes
+      .take(16)
+      .toList();
+  bytes[6] = (bytes[6] & 0x0f) | 0x50;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  final hex = bytes
+      .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+      .join();
+  return '${hex.substring(0, 8)}-'
+      '${hex.substring(8, 12)}-'
+      '${hex.substring(12, 16)}-'
+      '${hex.substring(16, 20)}-'
+      '${hex.substring(20)}';
+}

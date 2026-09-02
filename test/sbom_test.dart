@@ -77,6 +77,15 @@ packages:
     );
     expect(document['bomFormat'], 'CycloneDX');
     expect(document['specVersion'], '1.5');
+    expect(
+      document['serialNumber'],
+      matches(
+        RegExp(
+          r'^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-'
+          r'[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+        ),
+      ),
+    );
     final components = (document['components'] as List<Object?>)
         .cast<Map<String, Object?>>();
     final names = components.map((component) => component['name']).toSet();
@@ -106,6 +115,10 @@ packages:
       generateCycloneDx(dependencyGraph: graph, lockfile: lockfile),
     );
     expect(first, second);
+    expect(
+      (jsonDecode(first) as Map<String, dynamic>)['serialNumber'],
+      isNotEmpty,
+    );
     expect(first, endsWith('\n'));
     final decoded = jsonDecode(first) as Map<String, dynamic>;
     final metadata = decoded['metadata'] as Map<String, dynamic>;
