@@ -150,6 +150,19 @@ packages:
       isTrue,
     );
     expect(workflow, contains('sbom-path: build/harbor-web.cdx.json'));
+    expect(workflow, contains('id: upload_web'));
+    expect(
+      RegExp(r'subject-name: harbor-web-\$\{\{ github\.sha \}\}')
+          .allMatches(workflow),
+      hasLength(2),
+    );
+    expect(
+      RegExp(
+        r'subject-digest: sha256:\$\{\{ steps\.upload_web\.outputs\.'
+        r'artifact-digest \}\}',
+      ).allMatches(workflow),
+      hasLength(2),
+    );
     expect(workflow, contains(r'harbor-release-evidence-${{ github.sha }}'));
   });
 }

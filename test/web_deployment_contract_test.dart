@@ -109,6 +109,21 @@ void main() {
     expect(evidence, greaterThan(sbom));
     expect(pages, greaterThan(evidence));
     expect(workflow, contains('sbom-path: build/harbor-web.cdx.json'));
+    expect(workflow, contains('id: upload_web'));
+    expect(
+      RegExp(
+        r'^\s+subject-name: harbor-web-',
+        multiLine: true,
+      ).allMatches(workflow),
+      hasLength(2),
+    );
+    expect(
+      RegExp(
+        r'^\s+subject-digest: sha256:',
+        multiLine: true,
+      ).allMatches(workflow),
+      hasLength(2),
+    );
     expect(
       workflow,
       contains(r'name: harbor-release-evidence-${{ github.sha }}'),
