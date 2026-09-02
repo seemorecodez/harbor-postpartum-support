@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../tool/dependency_license_inventory.dart';
@@ -148,6 +147,13 @@ void main() {
     );
   });
 
+  test('license evidence hash is stable across platform line endings', () {
+    expect(
+      canonicalEvidenceHash(utf8.encode('first line\r\nsecond line\r\n')),
+      canonicalEvidenceHash(utf8.encode('first line\nsecond line\n')),
+    );
+  });
+
   test('a notice without an approved license fails closed', () {
     File('${runtimeRoot.path}/LICENSE').deleteSync();
     File('${runtimeRoot.path}/NOTICE').writeAsStringSync('runtime notice');
@@ -252,9 +258,4 @@ Map<String, Object?> _component(String name, String version, String source) => {
   ],
 };
 
-String _hash(String value) => Sha256()
-    .toSync()
-    .hashSync(utf8.encode(value))
-    .bytes
-    .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-    .join();
+String _hash(String value) => canonicalEvidenceHash(utf8.encode(value));

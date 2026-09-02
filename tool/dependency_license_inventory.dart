@@ -87,7 +87,7 @@ Map<String, Object?> generateDependencyLicenseInventory({
 
     final evidence = <Map<String, Object?>>[];
     for (final file in licenseFiles) {
-      final hash = _sha256(file.readAsBytesSync());
+      final hash = canonicalEvidenceHash(file.readAsBytesSync());
       final approval = approvedTexts[hash] as Map<String, dynamic>?;
       if (approval == null) {
         throw FormatException(
@@ -240,9 +240,15 @@ String? _property(Map<String, Object?> component, String name) {
   return null;
 }
 
-String _sha256(List<int> bytes) => Sha256()
-    .toSync()
-    .hashSync(bytes)
-    .bytes
-    .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-    .join();
+String canonicalEvidenceHash(List<int> bytes) {
+  final text = utf8
+      .decode(bytes)
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n');
+  return Sha256()
+      .toSync()
+      .hashSync(utf8.encode(text))
+      .bytes
+      .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+      .join();
+}
